@@ -43,7 +43,7 @@ const Chatbot = () => {
     const index = keyIndex !== null ? keyIndex : currentKeyIndexRef.current;
     const apiKey = GEMINI_API_KEYS[index] || 'YOUR_GEMINI_API_KEY';
     console.log(`🔑 Using API key ${index + 1}/${GEMINI_API_KEYS.length}: ${apiKey.substring(0, 20)}...`);
-    return `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+    return `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
   };
 
   // Switch to next API key
