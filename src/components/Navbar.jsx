@@ -1,0 +1,392 @@
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
+import LocationPicker from './LocationPicker';
+
+const Navbar = () => {
+  const { location, setLocation, cart, setUserLocation, userLocation } = useApp();
+  const { user, isAuthenticated, logout, setShowLoginModal, setShowSignupModal } = useAuth();
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const navigate = useNavigate();
+
+  // Set user location coordinates from profile if available (but don't change location text)
+  useEffect(() => {
+    if (user && user.address && user.address.latitude && user.address.longitude && !userLocation) {
+      console.log('📍 Navbar - Setting user coordinates from profile:', { lat: user.address.latitude, lon: user.address.longitude });
+      setUserLocation({
+        latitude: user.address.latitude,
+        longitude: user.address.longitude
+      });
+      // Don't set location text - let user explicitly select it
+    }
+  }, [user, userLocation, setUserLocation]);
+
+  const handleLocationSelect = (addressData) => {
+    // Use the display name if provided, otherwise construct from address parts
+    let locationText = 'Selected Location';
+    
+    if (addressData.displayName) {
+      // Use the exact display name from the selection
+      locationText = addressData.displayName;
+    } else if (addressData.fullAddress) {
+      // Use first 2-3 parts of full address for better context
+      const parts = addressData.fullAddress.split(',').map(p => p.trim());
+      locationText = parts.slice(0, Math.min(3, parts.length)).join(', ');
+    } else if (addressData.city !== 'N/A' && addressData.state !== 'N/A') {
+      locationText = `${addressData.city}, ${addressData.state}`;
+    } else if (addressData.city !== 'N/A') {
+      locationText = addressData.city;
+    } else if (addressData.state !== 'N/A') {
+      locationText = addressData.state;
+    }
+    
+    setLocation(locationText);
+    
+    // Set user location coordinates
+    if (addressData.latitude && addressData.longitude) {
+      setUserLocation({
+        latitude: addressData.latitude,
+        longitude: addressData.longitude
+      });
+      console.log('📍 Navbar - Location selected:', {
+        displayText: locationText,
+        coordinates: { latitude: addressData.latitude, longitude: addressData.longitude },
+        fullAddressData: addressData
+      });
+    }
+    
+    setShowLocationPicker(false);
+  };
+
+  const locations = [
+    'Mumbai, Maharashtra',
+    'Delhi, NCR',
+    'Bangalore, Karnataka',
+    'Hyderabad, Telangana',
+    'Pune, Maharashtra',
+    'Chennai, Tamil Nadu',
+  ];
+
+  const cartItemsCount = cart.reduce((total, item) => total + item.quantity, 0);
+
+  return (
+    <nav className="fixed top-0 left-0 right-0 bg-white shadow-md z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <div className="flex items-center space-x-8">
+            <div className="flex-shrink-0">
+              <h1 className="text-2xl font-bold text-[#FF3B30]">
+                Big<span className="text-[#FFC107]">Bite</span>
+              </h1>
+            </div>
+
+            {/* Location Selector */}
+            <div className="hidden md:flex items-center space-x-2">
+              <button
+                onClick={() => setShowLocationPicker(true)}
+                className="flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+                <span className="font-medium">{location}</span>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+              {location !== 'Select Location' && (
+                <button
+                  onClick={() => {
+                    setLocation('Select Location');
+                    setUserLocation(null);
+                  }}
+                  className="text-gray-400 hover:text-red-500 transition-colors"
+                  title="Clear location"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Right Side Menu */}
+          <div className="flex items-center space-x-6">
+            {/* Search Icon */}
+            <button className="hidden md:flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              <span className="font-medium">Search</span>
+            </button>
+
+            {/* Offers */}
+            <button className="hidden md:flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                />
+              </svg>
+              <span className="font-medium">Offers</span>
+            </button>
+
+            {/* Help */}
+            <button className="hidden md:flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span className="font-medium">Help</span>
+            </button>
+
+            {/* Cart */}
+            <button 
+              onClick={() => navigate('/cart')}
+              className="relative flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+              {cartItemsCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-[#FF3B30] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {cartItemsCount}
+                </span>
+              )}
+              <span className="hidden md:inline font-medium">Cart</span>
+            </button>
+
+            {/* Wishlist */}
+            {user && (
+              <button 
+                onClick={() => navigate('/wishlists')}
+                className="hidden md:flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors"
+              >
+                <span className="text-xl">💝</span>
+                <span className="font-medium">Wishlist</span>
+              </button>
+            )}
+
+            {/* User Profile */}
+            <div className="relative">
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors"
+              >
+                {user ? (
+                  <>
+                    {user.avatar ? (
+                      <img 
+                        src={user.avatar} 
+                        alt={user.name}
+                        className="w-8 h-8 rounded-full object-cover border-2 border-[#FF3B30]"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-[#FF3B30] text-white flex items-center justify-center font-semibold">
+                        {user.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                )}
+                <span className="hidden md:inline font-medium">
+                  {user ? user.name : 'Sign In'}
+                </span>
+              </button>
+
+              {/* User Menu Dropdown */}
+              {showUserMenu && (
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2">
+                  {isAuthenticated ? (
+                    <>
+                      <button
+                        onClick={() => {
+                          navigate('/profile');
+                          setShowUserMenu(false);
+                        }}
+                        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 transition-colors"
+                      >
+                        My Profile
+                      </button>
+                      {user.role === 'restaurant' && (
+                        <button
+                          onClick={() => {
+                            navigate('/restaurant-dashboard');
+                            setShowUserMenu(false);
+                          }}
+                          className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 transition-colors"
+                        >
+                          My Dashboard
+                        </button>
+                      )}
+                      {user.role === 'rider' && (
+                        <button
+                          onClick={() => {
+                            navigate('/rider/dashboard');
+                            setShowUserMenu(false);
+                          }}
+                          className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 transition-colors"
+                        >
+                          Rider Dashboard
+                        </button>
+                      )}
+                      <button onClick={()=>{navigate("/orders")}} className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 transition-colors">
+                        My Orders
+                      </button>
+                      <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 transition-colors">
+                        Favorites
+                      </button>
+                      <hr className="my-2" />
+                      <button
+                        onClick={() => {
+                          logout();
+                          setShowUserMenu(false);
+                          navigate('/');
+                        }}
+                        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-[#FF3B30] transition-colors"
+                      >
+                        Logout
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => {
+                          setShowLoginModal(true);
+                          setShowUserMenu(false);
+                        }}
+                        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 transition-colors"
+                      >
+                        Login
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowSignupModal(true);
+                          setShowUserMenu(false);
+                        }}
+                        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 transition-colors"
+                      >
+                        Sign Up
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Location Picker Modal */}
+      {showLocationPicker && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">Select Your Location</h3>
+              <button
+                onClick={() => setShowLocationPicker(false)}
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
+              <LocationPicker 
+                onLocationSelect={handleLocationSelect}
+                initialPosition={
+                  userLocation?.latitude && userLocation?.longitude && location !== 'Select Location'
+                    ? [userLocation.latitude, userLocation.longitude]
+                    : [20.5937, 78.9629] // Default to center of India
+                }
+                initialSearch={location !== 'Select Location' ? location : ''}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+};
+
+export default Navbar;
