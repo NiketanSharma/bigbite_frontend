@@ -12,6 +12,16 @@ export const AuthProvider=({children})=>{
     const [showKitchenDetailsModal, setShowKitchenDetailsModal] = useState(false);
     const SERVER_URL=import.meta.env.VITE_SERVER_URL||"http://localhost:5000"
     useEffect(() => {
+      // Check for token in URL hash (from Google OAuth)
+      const hash = window.location.hash;
+      if (hash && hash.includes('token=')) {
+        const token = hash.split('token=')[1];
+        if (token) {
+          localStorage.setItem('bigbite_token', token);
+          // Clean up the URL
+          window.history.replaceState(null, null, window.location.pathname);
+        }
+      }
       checkAuth()
     }, [])
     const checkAuth=async()=>{
