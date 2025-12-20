@@ -547,15 +547,22 @@ You can track your order from the "My Orders" section. The restaurant will start
 
         setMessages(prev => [...prev, assistantMessage]);
 
-      // Speak response if user used voice input
-      if (usedVoiceInput) {
-        speakText(aiResponse);
-        setUsedVoiceInput(false);
+        // Speak response if user used voice input
+        if (usedVoiceInput) {
+          speakText(aiResponse);
+          setUsedVoiceInput(false);
+        }
+      } catch (error) {
+        console.error('Error in chat:', error);
+        const errorMessage = {
+          role: 'assistant',
+          content: 'Sorry, I encountered an error. Please try again.',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      } finally {
+        setIsLoading(false);
       }
-
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   // Handle input key press
