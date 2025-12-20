@@ -39,7 +39,9 @@ const Chatbot = () => {
 
   const fetchWishlists = async () => {
     try {
+      console.log('Chatbot: Fetching wishlists, isAuthenticated:', isAuthenticated);
       const response = await api.getWishlists();
+      console.log('Chatbot: Wishlists response:', response);
       if (response.success) {
         setUserWishlists(response.wishlists);
       }

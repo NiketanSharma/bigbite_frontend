@@ -18,6 +18,7 @@ class ApiService {
 
     // Add token from localStorage if available
     const token = localStorage.getItem('bigbite_token');
+    console.log('API Request - Token:', token ? `${token.substring(0, 20)}...` : 'No token');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
