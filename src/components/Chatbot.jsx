@@ -21,6 +21,7 @@ const Chatbot = () => {
   const [usedVoiceInput, setUsedVoiceInput] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [speechTimeout, setSpeechTimeout] = useState(null);
+  const [speechEnabled, setSpeechEnabled] = useState(true); // Enable speech by default
   
   // Order placement state
   const [orderPlacementState, setOrderPlacementState] = useState(null); // null | 'confirming_items' | 'confirming_address' | 'placing_order'
@@ -146,9 +147,14 @@ const Chatbot = () => {
     };
   }, [speechTimeout]);
 
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
   // Check if speech synthesis is supported
   const isSpeechSupported = () => {
-    return 'speechSynthesis' in window && synthRef.current;
+    return 'speechSynthesis' in window && window.speechSynthesis;
   };
 
   // Text to speech function
@@ -627,8 +633,8 @@ You can track your order from the "My Orders" section. The restaurant will start
 
         setMessages(prev => [...prev, assistantMessage]);
 
-        // Speak response if user used voice input
-        if (usedVoiceInput && isSpeechSupported()) {
+        // Speak response if user used voice input or speech is enabled
+        if ((usedVoiceInput || speechEnabled) && isSpeechSupported()) {
           speakText(orderResponse);
           setUsedVoiceInput(false);
         }
@@ -646,7 +652,7 @@ You can track your order from the "My Orders" section. The restaurant will start
 
         setMessages(prev => [...prev, assistantMessage]);
 
-        if (usedVoiceInput && isSpeechSupported()) {
+        if ((usedVoiceInput || speechEnabled) && isSpeechSupported()) {
           speakText(assistantMessage.content);
           setUsedVoiceInput(false);
         }
@@ -670,8 +676,8 @@ You can track your order from the "My Orders" section. The restaurant will start
 
         setMessages(prev => [...prev, assistantMessage]);
 
-        // Speak response if user used voice input
-        if (usedVoiceInput && isSpeechSupported()) {
+        // Speak response if user used voice input or speech is enabled
+        if ((usedVoiceInput || speechEnabled) && isSpeechSupported()) {
           speakText(aiResponse);
           setUsedVoiceInput(false);
         }
@@ -868,6 +874,23 @@ You can track your order from the "My Orders" section. The restaurant will start
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                   </svg>
                 </button>
+
+                {/* Speech toggle button */}
+                {isSpeechSupported() && (
+                  <button
+                    onClick={() => setSpeechEnabled(!speechEnabled)}
+                    className={`p-3 rounded-xl transition ${
+                      speechEnabled
+                        ? 'bg-green-500 text-white hover:bg-green-600'
+                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                    }`}
+                    title={speechEnabled ? 'Disable speech' : 'Enable speech'}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M19 2l-2 2m0 0l2 2m-2-2h-8a5 5 0 00-5 5v6a5 5 0 005 5h8l2 2m0-2l2-2m-2 2V6" />
+                    </svg>
+                  </button>
+                )}
 
                 {/* Speaker button (only show when AI is speaking) */}
                 {isSpeaking && (
