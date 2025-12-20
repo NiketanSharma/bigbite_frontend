@@ -131,63 +131,101 @@ const Chatbot = () => {
     };
   }, []);
 
-  // Scroll to bottom when messages change
+  // Reset speaking state when component unmounts or when processing new messages
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    return () => {
+      // Cleanup function
+      setIsSpeaking(false);
+      if (speechTimeout) {
+        clearTimeout(speechTimeout);
+        setSpeechTimeout(null);
+      }
+      if (synthRef.current) {
+        synthRef.current.cancel();
+      }
+    };
+  }, [speechTimeout]);
+
+  // Check if speech synthesis is supported
+  const isSpeechSupported = () => {
+    return 'speechSynthesis' in window && synthRef.current;
+  };
 
   // Text to speech function
   const speakText = (text) => {
-    if (!synthRef.current) return;
+    if (!isSpeechSupported()) {
+      console.warn('Speech synthesis not supported in this browser');
+      return;
+    }
 
     // Clear any existing timeout
     if (speechTimeout) {
       clearTimeout(speechTimeout);
+      setSpeechTimeout(null);
     }
 
-    // Cancel any ongoing speech
+    // Cancel any ongoing speech and reset state
     synthRef.current.cancel();
     setIsSpeaking(false);
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US';
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-    utterance.volume = 1.0;
+    // Small delay to ensure cancellation is processed
+    setTimeout(() => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
 
-    // Set up event handlers
-    utterance.onstart = () => {
-      console.log('Speech started');
-      setIsSpeaking(true);
-    };
+      // Set up event handlers
+      utterance.onstart = () => {
+        console.log('Speech started for text:', text.substring(0, 50) + '...');
+        setIsSpeaking(true);
+      };
 
-    utterance.onend = () => {
-      console.log('Speech ended naturally');
-      setIsSpeaking(false);
-      if (speechTimeout) {
-        clearTimeout(speechTimeout);
+      utterance.onend = () => {
+        console.log('Speech ended naturally');
+        setIsSpeaking(false);
+        if (speechTimeout) {
+          clearTimeout(speechTimeout);
+          setSpeechTimeout(null);
+        }
+      };
+
+      utterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event.error);
+        setIsSpeaking(false);
+        if (speechTimeout) {
+          clearTimeout(speechTimeout);
+          setSpeechTimeout(null);
+        }
+      };
+
+      // Fallback timeout - more aggressive timing
+      const estimatedDuration = Math.max(text.length * 60, 4000); // 60ms per character, minimum 4 seconds
+      const fallbackTimeout = setTimeout(() => {
+        console.log('Speech fallback timeout triggered - forcing isSpeaking to false');
+        setIsSpeaking(false);
         setSpeechTimeout(null);
+        // Also cancel any ongoing speech as a safety measure
+        if (synthRef.current) {
+          synthRef.current.cancel();
+        }
+      }, estimatedDuration);
+
+      setSpeechTimeout(fallbackTimeout);
+
+      try {
+        synthRef.current.speak(utterance);
+        console.log('Speech synthesis initiated');
+      } catch (error) {
+        console.error('Error initiating speech synthesis:', error);
+        setIsSpeaking(false);
+        if (speechTimeout) {
+          clearTimeout(speechTimeout);
+          setSpeechTimeout(null);
+        }
       }
-    };
-
-    utterance.onerror = (event) => {
-      console.error('Speech synthesis error:', event.error);
-      setIsSpeaking(false);
-      if (speechTimeout) {
-        clearTimeout(speechTimeout);
-        setSpeechTimeout(null);
-      }
-    };
-
-    // Fallback timeout in case onend doesn't fire (some browsers have issues)
-    const fallbackTimeout = setTimeout(() => {
-      console.log('Speech fallback timeout triggered - forcing isSpeaking to false');
-      setIsSpeaking(false);
-      setSpeechTimeout(null);
-    }, Math.max(text.length * 50, 3000)); // Estimate based on text length, minimum 3 seconds
-
-    setSpeechTimeout(fallbackTimeout);
-    synthRef.current.speak(utterance);
+    }, 100); // Small delay to ensure previous speech is cancelled
   };
 
   // Stop speech
@@ -557,6 +595,13 @@ You can track your order from the "My Orders" section. The restaurant will start
   const sendMessage = async () => {
     if (!inputText.trim() || isLoading) return;
 
+    // Safety: Reset speaking state at the start of message processing
+    setIsSpeaking(false);
+    if (speechTimeout) {
+      clearTimeout(speechTimeout);
+      setSpeechTimeout(null);
+    }
+
     const userMessage = {
       role: 'user',
       content: inputText,
@@ -583,7 +628,7 @@ You can track your order from the "My Orders" section. The restaurant will start
         setMessages(prev => [...prev, assistantMessage]);
 
         // Speak response if user used voice input
-        if (usedVoiceInput) {
+        if (usedVoiceInput && isSpeechSupported()) {
           speakText(orderResponse);
           setUsedVoiceInput(false);
         }
@@ -601,7 +646,7 @@ You can track your order from the "My Orders" section. The restaurant will start
 
         setMessages(prev => [...prev, assistantMessage]);
 
-        if (usedVoiceInput) {
+        if (usedVoiceInput && isSpeechSupported()) {
           speakText(assistantMessage.content);
           setUsedVoiceInput(false);
         }
@@ -626,7 +671,7 @@ You can track your order from the "My Orders" section. The restaurant will start
         setMessages(prev => [...prev, assistantMessage]);
 
         // Speak response if user used voice input
-        if (usedVoiceInput) {
+        if (usedVoiceInput && isSpeechSupported()) {
           speakText(aiResponse);
           setUsedVoiceInput(false);
         }
