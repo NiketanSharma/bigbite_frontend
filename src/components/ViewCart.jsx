@@ -327,13 +327,10 @@ const ViewCart = () => {
 
       toast.loading('Placing your order...', { id: 'place-order' });
 
-      const API_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
-      console.log("📤 Complete order data being sent: ",orderData)
-      const response = await axios.post(
-        `${API_URL}/api/orders`,
-        orderData,
-        { withCredentials: true }
-      );
+      // Import api service
+      const { default: api } = await import('../services/api.js');
+      
+      const response = await api.placeOrder(orderData);
 
       if (response.data.success) {
         toast.success('Order placed successfully! 🎉', { id: 'place-order' });
@@ -400,6 +397,12 @@ const ViewCart = () => {
 
       toast.loading('Saving to wishlist...', { id: 'save-wishlist' });
 
+      const token = localStorage.getItem('bigbite_token');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await axios.post(
         `${SERVER_URL}/api/wishlist`,
         {
@@ -407,7 +410,7 @@ const ViewCart = () => {
           restaurant: restaurantId,
           items
         },
-        { withCredentials: true }
+        { headers }
       );
 
       if (response.data.success) {
