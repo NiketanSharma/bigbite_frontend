@@ -939,7 +939,7 @@ You can track your order from the "My Orders" section. The restaurant will start
                 {isSpeaking && (
                   <button
                     onClick={stopSpeaking}
-                    className="p-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition animate-pulse"
+      
                     title="Stop speaking"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

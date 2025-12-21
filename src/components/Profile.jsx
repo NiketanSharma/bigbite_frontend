@@ -367,11 +367,9 @@ const Profile = () => {
             </div>
 
             {/* Account Type Display (Read-only) */}
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6 rounded-2xl border-2 border-gray-200">
+            <div className="bg-gradient-to-r flex justify-between from-gray-50 to-gray-100 p-6 rounded-2xl border-2 border-gray-200">
               <label className="text-lg font-bold text-gray-800 mb-3 flex items-center">
-                <svg className="w-6 h-6 mr-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
-                </svg>
+                
                 Account Type
               </label>
               <div className="flex items-center space-x-3">
@@ -384,9 +382,7 @@ const Profile = () => {
             {/* Basic Information */}
             <div>
               <div className="md:justify-start justify-center text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                <svg className="w-7 h-7 mr-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
+                
                 <span>Personal Information</span>
               </div>
               
@@ -439,10 +435,7 @@ const Profile = () => {
             {formData.role !== 'restaurant' && (
               <div className="space-y-6">
                 <div className="md:justify-start justify-center text-2xl font-bold text-gray-900 mb-6 flex items-center border-b-2 border-gray-200 pb-3">
-                  <svg className="w-7 h-7 mr-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
+                  
                   <span>Address Information</span>
                 </div>
                 
@@ -450,7 +443,7 @@ const Profile = () => {
                 <button
                   type="button"
                   onClick={() => setShowUserAddressMap(!showUserAddressMap)}
-                  className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg font-semibold flex items-center justify-center gap-2"
+                  className="w-full px-6 py-3 bg-gradient-to-r from-red-500 to-yellow-500 text-white rounded-xl hover:from-red-600 hover:to-yellow-600 transition-all shadow-md hover:shadow-lg font-semibold flex items-center justify-center gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -843,7 +836,7 @@ const Profile = () => {
               <button
                 type="submit"
                 disabled={saving}
-                className="px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="px-8 py-3 bg-gradient-to-br from-red-500 to-yellow-500 text-white rounded-xl font-semibold hover:from-red-600 hover:to-yellow-600 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {saving ? (
                   <>

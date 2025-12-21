@@ -295,7 +295,7 @@ const RestaurantRegistration = () => {
             <div>
         
               <div className="flex flex-col justify-center md:justify-around md:flex-row items-center gap-6">
-                <div className="relative">
+                <div className="relative hover:shadow-xl transition-shadow rounded-full">
                   <div className="w-44 h-44  overflow-hidden border-4 rounded-full border-gray-200 shadow-lg">
                     {imagePreview ? (
                       <img
@@ -499,7 +499,7 @@ const RestaurantRegistration = () => {
                 <button
                   type="button"
                   onClick={() => setShowMap(!showMap)}
-                  className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-semibold flex items-center justify-center gap-2"
+                  className="w-full px-4 py-3 bg-gradient-to-r from-red-500 to-yellow-500 text-white rounded-lg hover:from-red-600 hover:to-yellow-600 transition font-semibold flex items-center justify-center gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
