@@ -1,4 +1,7 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { getApiURL } from '../utils/config';
+
+// Use dynamic API URL
+const API_BASE_URL = getApiURL();
 
 class ApiService {
   constructor() {

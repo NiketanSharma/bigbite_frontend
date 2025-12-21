@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from '../context/AuthContext';
+import { getServerURL } from '../utils/config';
 
 const SocketContext = createContext();
 
@@ -27,7 +28,7 @@ export const SocketProvider = ({ children }) => {
     console.log('🔄 Initializing socket with user:', user);
 
     // Initialize socket connection
-    const newSocket = io(import.meta.env.VITE_SERVER_URL || 'http://localhost:5000', {
+    const newSocket = io(getServerURL(), {
       withCredentials: true,
       transports: ['websocket', 'polling'],
       reconnection: true,
