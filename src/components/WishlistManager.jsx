@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import api from '../services/api';
+import heart  from '../assets/heart.png'
 
 const WishlistManager = () => {
   const { user, loading: authLoading } = useAuth();
@@ -269,19 +270,19 @@ const WishlistManager = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">My Wishlists</h1>
-          <p className="text-gray-600 mt-2">Save your favorite orders for later</p>
+          <h1 className="text-3xl font-bold text-gray-900 ">My Wishlists</h1>
+          <p className="text-gray-600 mt-2 poppins-regular">Save your favorite orders for later</p>
         </div>
 
         {/* Wishlists Grid */}
         {wishlists.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <div className="text-6xl mb-4">💝</div>
+          <div className="bg-white rounded-lg shadow-sm p-12 text-center flex flex-col items-center">
+            <img src={heart} className="size-40 animate-bounce" style={{ animationIterationCount: 1.5 }}/>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">No Wishlists Yet</h2>
             <p className="text-gray-600 mb-4">Add items to your cart and save them as a wishlist</p>
             <button
               onClick={() => navigate('/')}
-              className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-red-600"
+              className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-red-600 cursor-pointer"
             >
               Start Shopping
             </button>

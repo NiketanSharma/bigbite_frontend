@@ -416,12 +416,12 @@ const RestaurantDashboard = () => {
       <div className=" mx-auto px-4 sm:px-6 lg:px-8">
         <div className='flex w-full justify-around items-stretch rounded-t-4xl '>
           <div onClick={()=>{setActiveTab(0)}} className={`p-2 md:pt-6 rounded-tl-xl cursor-pointer w-full flex flex-1 flex-col items-center ${activeTab===0?'bg-white':'bg-gray-100'}`}>
-            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Order Management</h1>
-            <p className="text-gray-600 mt-1">Manage all your restaurant orders in one place</p>
+            <h1 className="p-2 md:text-3xl font-bold text-gray-900 poppins-bold ">Order Management</h1>
+            <p className="text-gray-600 mt-1 poppins-regular">Manage all your restaurant orders in one place</p>
           </div>
           <div onClick={()=>{setActiveTab(1)}} className={`p-2 md:pt-6 rounded-tr-xl cursor-pointer w-full flex flex-1 flex-col items-center ${activeTab===1?'bg-white':'bg-gray-100'}`}>
-            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Menu Management</h1>
-            <p className="text-gray-600 mt-1">Add and manage your restaurant menu items</p>
+            <h1 className="p-2 md:text-3xl font-bold text-gray-900 poppins-bold">Menu Management</h1>
+            <p className="text-gray-600 mt-1 poppins-regular">Add and manage your restaurant menu items</p>
           </div>
         </div>
         {/* Comprehensive Order Management Section */}
@@ -442,7 +442,7 @@ const RestaurantDashboard = () => {
           {/* Order Tabs */}
           <div className="border-t border-b border-gray-200 pt-2">
             
-            <nav className="flex -mb-px justify-between w-full overflow-auto">
+            <nav className="flex -mb-px justify-between w-full overflow-auto scroll">
               {[
                 { key: 'pending', label: 'Pending', count: allOrders.filter(o => o.status === 'pending').length },
                 { key: 'accepted', label: 'Accepted', count: allOrders.filter(o => o.status === 'accepted').length },
@@ -487,7 +487,7 @@ const RestaurantDashboard = () => {
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <h3 className="font-semibold text-lg text-gray-900">
-                          Order #{order._id.slice(-6)}
+                          Order #{order._id.slice(-8).toUpperCase()}
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
                           Customer: {order.customer?.name} | {order.customer?.phone}
@@ -526,6 +526,7 @@ const RestaurantDashboard = () => {
                       <div>
                         <p className="text-sm text-gray-600">Order Total</p>
                         <p className="text-sm font-medium text-gray-900">
+                          {console.log("order:", order)}
                           ₹{order.totalAmount.toFixed(2)}
                         </p>
                       </div>
@@ -601,13 +602,13 @@ const RestaurantDashboard = () => {
         </div>
 
         {/* Menu Items Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-slate-100 p-4 place-items-center shadow-xl rounded-lg">
           {menuItems.filter(item => showUnavailable || item.isAvailable).map((item) => (
             <motion.div
               key={item._id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`bg-white rounded-lg shadow-md overflow-hidden ${
+              className={`bg-white rounded-lg shadow-md w-80 overflow-hidden ${
                 !item.isAvailable ? 'opacity-50 ' : ''
               }`}
             >
@@ -650,7 +651,15 @@ const RestaurantDashboard = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <button
+                   <button
+                      onClick={() => startEdit(item)}
+                      className="flex-1 px-3 py-2 font-medium w-full bg-gray-300 text-gray-900 rounded hover:bg-gray-400 transition text-sm"
+                    >
+                      Edit
+                    </button>
+                  
+                  <div className="flex gap-2">
+                    <button
                     onClick={() => toggleAvailability(item._id, item.isAvailable)}
                     className={`w-full px-3 py-2 rounded transition text-sm font-medium ${
                       item.isAvailable
@@ -660,16 +669,9 @@ const RestaurantDashboard = () => {
                   >
                     {item.isAvailable ? 'Mark Unavailable' : 'Mark Available'}
                   </button>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => startEdit(item)}
-                      className="flex-1 px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition text-sm"
-                    >
-                      Edit
-                    </button>
                     <button
                       onClick={() => handleDelete(item._id)}
-                      className="flex-1 px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition text-sm"
+                      className=" w-full px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 font-medium  transition text-sm"
                     >
                       Delete
                     </button>
@@ -729,7 +731,7 @@ const RestaurantDashboard = () => {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                  placeholder="Delicious creamy butter chicken..."
+                  placeholder="Delicious creamy palak paneer... 300gm"
                   rows="3"
                   required
                 />

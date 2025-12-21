@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import LocationPicker from './LocationPicker';
+import heart from "../assets/heart.png";
 
 const Navbar = () => {
   const { location, setLocation, cart, setUserLocation, userLocation } = useApp();
@@ -10,6 +11,7 @@ const Navbar = () => {
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const navigate = useNavigate();
+  const userMenuRef = useRef(null);
 
   // Set user location coordinates from profile if available (but don't change location text)
   useEffect(() => {
@@ -23,10 +25,27 @@ const Navbar = () => {
     }
   }, [user, userLocation, setUserLocation]);
 
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    if (showUserMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showUserMenu]);
+
   const handleLocationSelect = (addressData) => {
     // Use the display name if provided, otherwise construct from address parts
     let locationText = 'Selected Location';
-    
+
     if (addressData.displayName) {
       // Use the exact display name from the selection
       locationText = addressData.displayName;
@@ -41,9 +60,9 @@ const Navbar = () => {
     } else if (addressData.state !== 'N/A') {
       locationText = addressData.state;
     }
-    
+
     setLocation(locationText);
-    
+
     // Set user location coordinates
     if (addressData.latitude && addressData.longitude) {
       setUserLocation({
@@ -56,7 +75,7 @@ const Navbar = () => {
         fullAddressData: addressData
       });
     }
-    
+
     setShowLocationPicker(false);
   };
 
@@ -76,7 +95,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div  className="flex items-center space-x-8">
+          <div className="flex items-center space-x-8">
             <div onClick={() => navigate("/")} className="flex-shrink-0">
               <h1 className="text-2xl font-bold text-[#FF3B30]">
                 Big<span className="text-[#FFC107]">Bite</span>
@@ -84,7 +103,7 @@ const Navbar = () => {
             </div>
 
             {/* Location Selector */}
-            <div className="hidden md:flex items-center space-x-2">
+            <div className=" md:flex items-center space-x-2">
               <button
                 onClick={() => setShowLocationPicker(true)}
                 className="flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors"
@@ -108,7 +127,7 @@ const Navbar = () => {
                     d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                   />
                 </svg>
-                <span className="font-medium">{location}</span>
+                <span className="hidden md:block font-medium">{location}</span>
                 <svg
                   className="w-4 h-4"
                   fill="none"
@@ -143,7 +162,7 @@ const Navbar = () => {
           {/* Right Side Menu */}
           <div className="flex items-center space-x-6">
             {/* Search Icon */}
-            <button className="hidden md:flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors">
+            {/* <button className="hidden md:flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors">
               <svg
                 className="w-5 h-5"
                 fill="none"
@@ -158,7 +177,7 @@ const Navbar = () => {
                 />
               </svg>
               <span className="font-medium">Search</span>
-            </button>
+            </button> */}
 
             {/* Offers */}
             <button className="hidden md:flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors">
@@ -179,7 +198,7 @@ const Navbar = () => {
             </button>
 
             {/* Help */}
-            <button className="hidden md:flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors">
+            {/* <button className="hidden md:flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors">
               <svg
                 className="w-5 h-5"
                 fill="none"
@@ -194,26 +213,19 @@ const Navbar = () => {
                 />
               </svg>
               <span className="font-medium">Help</span>
-            </button>
+            </button> */}
 
             {/* Cart */}
-            <button 
+            <button
               onClick={() => navigate('/cart')}
               className="relative flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors"
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
+              <lord-icon
+                src="https://cdn.lordicon.com/wjhxvnmc.json"
+                trigger="hover"
+                colors="primary:#e83a30,secondary:#e8b730"
+                className="size-8">
+              </lord-icon>
               {cartItemsCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-[#FF3B30] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                   {cartItemsCount}
@@ -224,11 +236,11 @@ const Navbar = () => {
 
             {/* Wishlist */}
             {user && (
-              <button 
+              <button
                 onClick={() => navigate('/wishlists')}
                 className="hidden md:flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors"
               >
-                <span className="text-xl">💝</span>
+                <img src={heart} className="size-8"/>
                 <span className="font-medium">Wishlist</span>
               </button>
             )}
@@ -242,8 +254,8 @@ const Navbar = () => {
                 {user ? (
                   <>
                     {user.avatar ? (
-                      <img 
-                        src={user.avatar} 
+                      <img
+                        src={user.avatar}
                         alt={user.name}
                         className="w-8 h-8 rounded-full object-cover border-2 border-[#FF3B30]"
                       />
@@ -275,7 +287,10 @@ const Navbar = () => {
 
               {/* User Menu Dropdown */}
               {showUserMenu && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2">
+                <div 
+                  ref={userMenuRef}
+                  className="poppins-regular absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2"
+                >
                   {isAuthenticated ? (
                     <>
                       <button
@@ -309,11 +324,12 @@ const Navbar = () => {
                           Rider Dashboard
                         </button>
                       )}
-                      <button onClick={()=>{navigate("/orders")}} className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 transition-colors">
+                      <button onClick={() => { navigate("/orders") }} className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 transition-colors">
                         My Orders
                       </button>
-                      <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 transition-colors">
-                        Favorites
+
+                      <button onClick={() => navigate("/wishlists")} className="md:hidden w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 transition-colors">
+                        My Wishlist
                       </button>
                       <hr className="my-2" />
                       <button
@@ -372,7 +388,7 @@ const Navbar = () => {
               </button>
             </div>
             <div className="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
-              <LocationPicker 
+              <LocationPicker
                 onLocationSelect={handleLocationSelect}
                 initialPosition={
                   userLocation?.latitude && userLocation?.longitude && location !== 'Select Location'
