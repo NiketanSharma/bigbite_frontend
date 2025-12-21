@@ -16,6 +16,8 @@ import RiderDashboard from './components/RiderDashboard';
 import MyOrders from './components/MyOrders';
 import OrderTracking from './components/OrderTracking';
 import Chatbot from './components/Chatbot';
+import AboutUs from './components/AboutUs';
+import PrivacyPolicy from './components/PrivacyPolicy';
 import { BrowserRouter as  Router,Routes,Route } from "react-router-dom";
 import { useAuth } from './context/AuthContext';
 import Tester from './components/tester';
@@ -41,6 +43,8 @@ function App() {
       <Routes>
         <Route path="/" element={<><Hero /><RestaurantExplore /><PartnerSection /></>}/>
         <Route path="/test" element={<Tester/>}/>
+        <Route path="/about" element={<AboutUs/>}/>
+        <Route path="/privacy-policy" element={<PrivacyPolicy/>}/>
         <Route path="/profile" element={<Profile/>}/>
         <Route path="/cart" element={<ViewCart/>}/>
         <Route path="/wishlists" element={<WishlistManager/>}/>
@@ -51,8 +55,7 @@ function App() {
         <Route path="/restaurant/:restaurantId" element={<RestaurantPage/>}/>
         <Route path="/restaurant/:restaurantId/item/:itemId" element={<RestaurantPage/>}/>
         <Route path="/rider/dashboard" element={<RiderDashboard/>}/>
-        <Route path="/orders" element={<MyOrders/>}/>
-        
+        <Route path="/rider-profile" element={<RiderDashboard/>}/>
       </Routes>
       <Footer />
       

@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import api from '../services/api';
-import heart  from '../assets/heart.png'
+import heart from '../assets/heart.png'
 
 const WishlistManager = () => {
   const { user, loading: authLoading } = useAuth();
@@ -31,7 +31,7 @@ const WishlistManager = () => {
   useEffect(() => {
     // Wait for auth to finish loading
     if (authLoading) return;
-    
+
     if (user) {
       fetchWishlists();
     } else {
@@ -43,7 +43,7 @@ const WishlistManager = () => {
     try {
       setLoading(true);
       const response = await api.getWishlists();
-      
+
       if (response.success) {
         setWishlists(response.wishlists);
       } else {
@@ -52,10 +52,10 @@ const WishlistManager = () => {
       }
     } catch (error) {
       console.error('Error fetching wishlists:', error);
-      
+
       // Handle authentication errors
-      if (error.message === 'Authentication required. Please log in again.' || 
-          error.response?.status === 401) {
+      if (error.message === 'Authentication required. Please log in again.' ||
+        error.response?.status === 401) {
         console.log('Token is invalid or expired, redirecting to login');
         localStorage.removeItem('bigbite_token');
         navigate('/');
@@ -152,7 +152,7 @@ const WishlistManager = () => {
   const handleCheckout = async (wishlist) => {
     // Validate restaurant is open
     const isKitchenOpen = wishlist.restaurant?.restaurantDetails?.isKitchenOpen ?? true;
-    
+
     if (!isKitchenOpen) {
       toast.error('This restaurant is currently closed and not accepting orders.');
       return;
@@ -165,7 +165,7 @@ const WishlistManager = () => {
     }
 
     const restaurantAddress = wishlist.restaurant?.restaurantDetails?.address;
-    
+
     if (!restaurantAddress?.latitude || !restaurantAddress?.longitude) {
       toast.error('Restaurant location not available');
       return;
@@ -277,7 +277,7 @@ const WishlistManager = () => {
         {/* Wishlists Grid */}
         {wishlists.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm p-12 text-center flex flex-col items-center">
-            <img src={heart} className="size-40 animate-bounce" style={{ animationIterationCount: 1.5 }}/>
+            <img src={heart} className="size-40 animate-bounce" style={{ animationIterationCount: 1.5 }} />
             <h2 className="text-xl font-semibold text-gray-900 mb-2">No Wishlists Yet</h2>
             <p className="text-gray-600 mb-4">Add items to your cart and save them as a wishlist</p>
             <button
@@ -315,22 +315,29 @@ const WishlistManager = () => {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleUpdateQuantity(wishlist._id, item._id, item.quantity - 1)}
-                          className="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center"
-                        >
-                          -
+                          className="font-bold w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center"
+                        ><span>-</span>
+
                         </button>
                         <span className="w-8 text-center">{item.quantity}</span>
                         <button
                           onClick={() => handleUpdateQuantity(wishlist._id, item._id, item.quantity + 1)}
-                          className="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center"
-                        >
-                          +
+                          className="font-bold w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center"
+                        ><span>+</span>
+
                         </button>
                         <button
                           onClick={() => handleDeleteItem(wishlist._id, item._id)}
                           className="ml-2 text-red-500 hover:text-red-700"
                         >
-                          🗑️
+                          <lord-icon
+                            src="https://cdn.lordicon.com/jzinekkv.json"
+                            trigger="hover"
+                            stroke="bold"
+                            colors="primary:#e83a30,secondary:#e83a30"
+                            className='size-7'
+                          >
+                          </lord-icon>
                         </button>
                       </div>
                     </div>
@@ -366,13 +373,27 @@ const WishlistManager = () => {
                     }}
                     className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
                   >
-                    ✏️
+                    <lord-icon
+                      src="https://cdn.lordicon.com/exymduqj.json"
+                      trigger="hover"
+                      stroke="bold"
+                      state="hover-line"
+                      colors="primary:#e83a30,secondary:#e83a30"
+                      className='size-7'>
+                    </lord-icon>
                   </button>
                   <button
                     onClick={() => handleDeleteWishlist(wishlist._id)}
                     className="px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
                   >
-                    🗑️
+                    <lord-icon
+                      src="https://cdn.lordicon.com/jzinekkv.json"
+                      trigger="hover"
+                      stroke="bold"
+                      colors="primary:#e83a30,secondary:#e83a30"
+                      className='size-7'
+                    >
+                    </lord-icon>
                   </button>
                 </div>
               </motion.div>
@@ -442,7 +463,7 @@ const WishlistManager = () => {
                 onClick={(e) => e.stopPropagation()}
               >
                 <h3 className="text-2xl font-bold mb-4">Confirm Order</h3>
-                
+
                 {/* Items Summary */}
                 <div className="mb-4">
                   <h4 className="font-semibold mb-2">Items:</h4>
@@ -472,21 +493,19 @@ const WishlistManager = () => {
                   <div className="flex gap-2">
                     <button
                       onClick={() => setPaymentMethod('cod')}
-                      className={`flex-1 px-4 py-2 rounded-lg border-2 ${
-                        paymentMethod === 'cod'
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-gray-300'
-                      }`}
+                      className={`flex-1 px-4 py-2 rounded-lg border-2 ${paymentMethod === 'cod'
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-gray-300'
+                        }`}
                     >
                       Cash on Delivery
                     </button>
                     <button
                       onClick={() => setPaymentMethod('online')}
-                      className={`flex-1 px-4 py-2 rounded-lg border-2 ${
-                        paymentMethod === 'online'
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-gray-300'
-                      }`}
+                      className={`flex-1 px-4 py-2 rounded-lg border-2 ${paymentMethod === 'online'
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-gray-300'
+                        }`}
                     >
                       Online Payment
                     </button>

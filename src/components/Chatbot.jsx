@@ -266,14 +266,46 @@ const Chatbot = () => {
   // Use AI to detect order intent and extract wishlist name
   const detectOrderIntentWithAI = async (message) => {
     try {
+      console.log('🤖 Calling /detect-order-intent API...');
       const response = await api.post('/chatbot/detect-order-intent', { message });
+      console.log('📦 Order intent response:', response);
       if (response.success) {
+        console.log('✅ Success - wantsToOrder:', response.wantsToOrder, ', wishlistName:', response.wishlistName);
         return response.wantsToOrder ? response.wishlistName : null;
       }
+      console.log('❌ Response success is false');
       return null;
     } catch (error) {
-      console.error('Error detecting order intent:', error);
+      console.error('❌ Error detecting order intent:', error);
       return null;
+    }
+  };
+
+  // Use AI to detect confirmation/cancellation intent
+  const detectConfirmationIntent = async (message) => {
+    try {
+      console.log('🤖 Calling /detect-confirmation API...');
+      const response = await api.post('/chatbot/detect-confirmation', { message });
+      console.log('📦 Confirmation intent response:', response);
+      if (response.success) {
+        console.log('✅ Success - intent:', response.intent);
+        return response.intent; // 'confirm', 'cancel', or 'unclear'
+      }
+      console.log('❌ Response success is false, returning unclear');
+      return 'unclear';
+    } catch (error) {
+      console.error('❌ Error detecting confirmation intent:', error);
+      // Fallback to basic keyword matching
+      const lowerMsg = message.toLowerCase();
+      if (lowerMsg.includes('yes') || lowerMsg.includes('sure') || lowerMsg.includes('ok') || lowerMsg.includes('confirm')) {
+        console.log('🔍 Fallback: detected confirm');
+        return 'confirm';
+      } else if (lowerMsg.includes('no') || lowerMsg.includes('cancel') || lowerMsg.includes('stop')) {
+        console.log('🔍 Fallback: detected cancel');
+        return 'cancel';
+      }
+      console.log('🔍 Fallback: unclear');
+      return 'unclear';
     }
   };
 
@@ -286,10 +318,15 @@ const Chatbot = () => {
 
   // Handle order placement flow
   const handleOrderPlacement = async (userInput) => {
+    console.log('\n--- handleOrderPlacement called ---');
+    console.log('📥 Input:', userInput);
+    console.log('📍 Current orderPlacementState:', orderPlacementState);
+    
     const lowerInput = userInput.toLowerCase().trim();
 
     // IMPORTANT: Only handle cancel/no keywords if we're actually in an order flow
     if (orderPlacementState && (lowerInput.includes('cancel') || lowerInput === 'no' || lowerInput.includes('stop'))) {
+      console.log('❌ User wants to cancel order');
       setOrderPlacementState(null);
       setSelectedWishlist(null);
       return "Order cancelled. How else can I help you?";
@@ -302,7 +339,11 @@ const Chatbot = () => {
 
     // State: Confirming items
     if (orderPlacementState === 'confirming_items') {
-      if (lowerInput.includes('yes') || lowerInput.includes('confirm') || lowerInput.includes('sure') || lowerInput.includes('ok')) {
+      console.log('📦 In confirming_items state');
+      const intent = await detectConfirmationIntent(userInput);
+      console.log('🤔 User intent detected:', intent);
+      
+      if (intent === 'confirm') {
         // Move to address confirmation
         setOrderPlacementState('confirming_address');
 
@@ -317,16 +358,23 @@ const Chatbot = () => {
           : `Lat: ${user.address.latitude}, Long: ${user.address.longitude}`;
 
         return `Great! Your order will be delivered to:\n ${addressText}\n\nPayment method: Cash on Delivery (COD)\n\nDo you want to proceed with the order?`;
-      } else {
+      } else if (intent === 'cancel') {
         setOrderPlacementState(null);
         setSelectedWishlist(null);
         return "Order cancelled. Feel free to ask me anything else!";
+      } else {
+        return "I didn't quite understand that. Please say 'yes' to confirm the order or 'no' to cancel.";
       }
     }
 
     // State: Confirming address & placing order
     if (orderPlacementState === 'confirming_address') {
-      if (lowerInput.includes('yes') || lowerInput.includes('confirm') || lowerInput.includes('sure') || lowerInput.includes('ok') || lowerInput.includes('proceed')) {
+      console.log('🏠 In confirming_address state');
+      const intent = await detectConfirmationIntent(userInput);
+      console.log('🤔 User intent detected:', intent);
+      
+      if (intent === 'confirm') {
+        console.log('✅ User confirmed, placing order...');
         setOrderPlacementState('placing_order');
 
         try {
@@ -401,6 +449,10 @@ const Chatbot = () => {
           let deliveryFee = 40; // Default fee
           let distance = 0;
 
+          console.log('\n========== DISTANCE CALCULATION ==========');
+          console.log('🏪 Restaurant Coordinates:', { lat: restaurantLat, lon: restaurantLon });
+          console.log('🏠 Customer Coordinates:', { lat: user.address.latitude, lon: user.address.longitude });
+
           if (restaurantLat && restaurantLon && user.address.latitude && user.address.longitude) {
             distance = calculateDistance(
               restaurantLat,
@@ -409,7 +461,7 @@ const Chatbot = () => {
               user.address.longitude
             );
 
-            console.log(`📏 Calculated distance: ${distance.toFixed(2)} km`);
+            console.log(`📏 CALCULATED DISTANCE: ${distance.toFixed(2)} km`);
             console.log(`   From: Restaurant (${restaurantLat}, ${restaurantLon})`);
             console.log(`   To: Customer (${user.address.latitude}, ${user.address.longitude})`);
 
@@ -417,14 +469,15 @@ const Chatbot = () => {
             deliveryFee = distance * 8;
             deliveryFee = Math.round(deliveryFee); // Round to nearest rupee
 
-            console.log(`🚚 Distance: ${distance.toFixed(2)} km, Delivery Fee: ₹${deliveryFee}`);
+            console.log(`🚚 DELIVERY FEE: ₹${deliveryFee} (${distance.toFixed(2)} km × ₹8/km)`);
           } else {
-            console.warn('Missing coordinates, using default delivery fee of ₹40');
+            console.warn('⚠️ Missing coordinates, using default delivery fee of ₹40');
           }
+          console.log('=========================================\n');
 
           // Calculate pricing
           const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-          const platformFee = subtotal * 0.05; // 5%
+          const platformFee = 5; // Flat ₹5
           const gst = (subtotal + deliveryFee + platformFee) * 0.05; // 5%
           const totalAmount = subtotal + deliveryFee + platformFee + gst;
 
@@ -492,7 +545,7 @@ Total Amount:     ₹${totalAmount.toFixed(2)}
 
 Payment: Cash on Delivery (COD)
 
-You can track your order from the "My Orders" section. The restaurant will start preparing your food soon! 🍕`;
+You can track your order from the "My Orders" section. The restaurant will start preparing your food soon! `;
 
             return breakdown;
           } else {
@@ -504,20 +557,27 @@ You can track your order from the "My Orders" section. The restaurant will start
           setSelectedWishlist(null);
           return `Sorry, there was an error placing your order: ${error.message}. Please try again or contact support.`;
         }
-      } else {
+      } else if (intent === 'cancel') {
         setOrderPlacementState(null);
         setSelectedWishlist(null);
         return "Order cancelled. How else can I help you?";
+      } else {
+        return "I didn't quite understand that. Please say 'yes' to proceed with the order or 'no' to cancel.";
       }
     }
 
     // Initial order request - use AI to detect intent FIRST, then check wishlists
     // Only proceed if AI confirms this is actually an order request
+    console.log('🤖 Checking with AI if this is an order request...');
     const wishlistName = await detectOrderIntentWithAI(userInput);
+    console.log('📝 AI detected wishlist name:', wishlistName);
 
     if (!wishlistName) {
+      console.log('❌ Not an order request according to AI');
       return null; // Not an order request, let it go to general AI chat
     }
+
+    console.log('✅ AI confirmed this is an order request for:', wishlistName);
 
     // User wants to order, now check prerequisites
     if (!isAuthenticated) {
@@ -547,7 +607,7 @@ You can track your order from the "My Orders" section. The restaurant will start
       const totalItems = matchedWishlist.items.reduce((sum, item) => sum + item.quantity, 0);
       const totalPrice = matchedWishlist.items.reduce((sum, item) => sum + (item.menuItem.price * item.quantity), 0);
 
-      return `🛒 Found your "${matchedWishlist.name}" wishlist!\n\n📋 Your order contains:\n${itemsList}\n\n📊 Total Items: ${totalItems}\n💰 Subtotal: ₹${totalPrice.toFixed(2)}\n\nDo you want to continue with this order?`;
+      return ` Found your "${matchedWishlist.name}" wishlist!\n\n Your order contains:\n${itemsList}\n\n Total Items: ${totalItems}\n Subtotal: ₹${totalPrice.toFixed(2)}\n\nDo you want to continue with this order?`;
     }
 
     return null; // Not an order request
@@ -557,22 +617,30 @@ You can track your order from the "My Orders" section. The restaurant will start
   const sendMessage = async () => {
     if (!inputText.trim() || isLoading) return;
 
+    // Store input and clear immediately to prevent UI lag
+    const currentInput = inputText.trim();
+    setInputText('');
+
+    console.log('\n========== CHATBOT MESSAGE FLOW ==========');
+    console.log('💬 User Input:', currentInput);
+
     const userMessage = {
       role: 'user',
-      content: inputText,
+      content: currentInput,
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
-    const currentInput = inputText;
-    setInputText('');
     setIsLoading(true);
 
     try {
       // First, check if this is an order placement request
+      console.log('❓ Checking if this is an order placement request...');
       const orderResponse = await handleOrderPlacement(currentInput);
+      console.log('📍 Order Response:', orderResponse);
 
       if (orderResponse) {
+        console.log('✅ This is an order-related interaction');
         // This is an order-related interaction
         const assistantMessage = {
           role: 'assistant',
@@ -588,11 +656,15 @@ You can track your order from the "My Orders" section. The restaurant will start
           setUsedVoiceInput(false);
         }
         setIsLoading(false);
+        console.log('=========================================\n');
         return;
       }
 
+      console.log('❌ Not an order request, proceeding to general chat');
+
       // If we're in order placement flow but message wasn't handled, guide user
       if (orderPlacementState) {
+        console.log('⚠️ In order placement state:', orderPlacementState);
         const assistantMessage = {
           role: 'assistant',
           content: "I didn't quite understand that. Please type 'yes' to confirm or 'cancel' to stop the order process.",
@@ -606,17 +678,20 @@ You can track your order from the "My Orders" section. The restaurant will start
           setUsedVoiceInput(false);
         }
         setIsLoading(false);
-
+        console.log('=========================================\n');
         return;
       }
 
       // Otherwise, use backend API for general questions
       try {
-        console.log('Sending message to chatbot:', currentInput);
+        console.log('🚀 Sending to backend API /chatbot/chat...');
         const response = await api.post('/chatbot/chat', { message: currentInput });
-        console.log('Chatbot response:', response);
+        console.log('📦 Backend Response:', JSON.stringify(response, null, 2));
+        console.log('🔍 Response.success:', response.success);
+        console.log('🔍 Response.message:', response.message);
+        
         const aiResponse = response.success && response.message ? response.message : 'Sorry, I could not process that request.';
-        console.log('AI Response:', aiResponse);
+        console.log('🤖 Final AI Response:', aiResponse);
 
         const assistantMessage = {
           role: 'assistant',
@@ -631,21 +706,27 @@ You can track your order from the "My Orders" section. The restaurant will start
           speakText(aiResponse);
           setUsedVoiceInput(false);
         }
+        console.log('✅ Message sent successfully');
+        console.log('=========================================\n');
       } catch (error) {
-        console.error('Error in chat:', error);
-        console.error('Error details:', error.response?.data || error.message);
+        console.error('❌ Error in chat API call:', error);
+        console.error('📊 Error details:', error.response?.data || error.message);
+        console.error('📊 Full error object:', JSON.stringify(error, null, 2));
         const errorMessage = {
           role: 'assistant',
           content: 'Sorry, I encountered an error. Please try again.',
           timestamp: new Date()
         };
         setMessages(prev => [...prev, errorMessage]);
+        console.log('=========================================\n');
       } finally {
         setIsLoading(false);
       }
     } catch (error) {
-      console.error('Error in sendMessage:', error);
+      console.error('❌ Error in sendMessage outer catch:', error);
+      console.error('📊 Outer error details:', JSON.stringify(error, null, 2));
       setIsLoading(false);
+      console.log('=========================================\n');
     }
   };
 
@@ -771,29 +852,26 @@ You can track your order from the "My Orders" section. The restaurant will start
 
             {/* Messages Container */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-              {messages.map((message, index) => {
-                console.log('Rendering message:', index, message);
-                return (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              {messages.map((message, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[80%] rounded-2xl px-4 py-2 ${message.role === 'user'
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white'
+                      : 'bg-white text-gray-800 shadow-md'
+                      }`}
                   >
-                    <div
-                      className={`max-w-[80%] rounded-2xl px-4 py-2 ${message.role === 'user'
-                        ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white'
-                        : 'bg-white text-gray-800 shadow-md'
-                        }`}
-                    >
-                      <p className="text-sm whitespace-pre-wrap">{parseMarkdown(message.content)}</p>
-                      <p className={`text-xs mt-1 ${message.role === 'user' ? 'text-white/70' : 'text-gray-400'}`}>
-                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                    </div>
-                  </motion.div>
-                );
-              })}
+                    <p className="text-sm whitespace-pre-wrap">{parseMarkdown(message.content)}</p>
+                    <p className={`text-xs mt-1 ${message.role === 'user' ? 'text-white/70' : 'text-gray-400'}`}>
+                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
 
               {/* Loading indicator */}
               {isLoading && (
