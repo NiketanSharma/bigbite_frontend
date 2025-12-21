@@ -883,7 +883,7 @@ const ViewCart = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <img src={heart} className="sze-8" alt="" /> Save to Wishlist
+                <img src={heart} className="size-8" alt="" /> Save to Wishlist
               </h3>
               
               <p className="text-gray-600 mb-4">

@@ -271,7 +271,7 @@ const RestaurantRegistration = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 py-12 px-4 pt-20">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -293,20 +293,15 @@ const RestaurantRegistration = () => {
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Restaurant Image Upload */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                <span className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center mr-3 text-sm">
-                  1
-                </span>
-                Restaurant Image
-              </h2>
-              <div className="flex items-center gap-6">
+        
+              <div className="flex flex-col justify-center md:justify-around md:flex-row items-center gap-6">
                 <div className="relative">
-                  <div className="w-32 h-32 rounded-xl overflow-hidden border-4 border-gray-200 shadow-lg">
+                  <div className="w-44 h-44  overflow-hidden border-4 rounded-full border-gray-200 shadow-lg">
                     {imagePreview ? (
                       <img
                         src={imagePreview}
                         alt="Restaurant"
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover "
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
@@ -325,14 +320,10 @@ const RestaurantRegistration = () => {
                         </svg>
                       </div>
                     )}
+                    
                   </div>
-                  {submitting && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
-                      <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                  )}
-                </div>
-                <div>
+                  <span className='cursor-pointer bg-red-500 rounded-full absolute size-10 z-10 right-1 bottom-1 text-white text-2xl font-bold flex items-center justify-center'>
+                  
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -344,30 +335,33 @@ const RestaurantRegistration = () => {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={submitting}
-                    className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
-                  >
-                    {imagePreview ? 'Change Image' : 'Select Image'}
+                    className='text-2xl font-bold'
+                    >
+                    +
                   </button>
-                  <p className="text-sm text-gray-500 mt-2">
-                    JPG, PNG or GIF. Max size 5MB
-                  </p>
-                  {imageFile && (
+        
+                  {/* {imageFile && (
                     <p className="text-xs text-green-600 mt-1">
                       ✓ Image ready to upload
                     </p>
+                  )} */}
+                  </span>
+                  {submitting && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
+                      <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                    </div>
                   )}
                 </div>
+                
               </div>
             </div>
 
             {/* Restaurant Details */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                <span className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center mr-3 text-sm">
-                  2
-                </span>
-                Restaurant Details
-              </h2>
+              <div className=" md:justify-start justify-center  text-2xl font-bold text-gray-900 mb-6 flex items-center justify-center">
+                <span>Restaurant Details</span>
+                
+              </div>
 
               <div className="space-y-6">
                 {/* Restaurant Name */}
@@ -380,7 +374,7 @@ const RestaurantRegistration = () => {
                     name="restaurantDetails.kitchenName"
                     value={formData.restaurantDetails.kitchenName}
                     onChange={handleChange}
-                    placeholder="e.g., Spice Garden Restaurant"
+                    placeholder="e.g Spice Garden Restaurant"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition"
                     required
                   />
@@ -403,7 +397,7 @@ const RestaurantRegistration = () => {
                 </div>
 
                 {/* Food Type Selection */}
-                <div>
+                <div className='hidden'>
                   <label className="block text-sm font-semibold text-gray-700 mb-3">
                     Food Type *
                   </label>
@@ -495,12 +489,10 @@ const RestaurantRegistration = () => {
 
             {/* Restaurant Address */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                <span className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center mr-3 text-sm">
-                  3
-                </span>
-                Restaurant Address
-              </h2>
+              <div className=" text-2xl font-bold text-gray-900 mb-6 flex items-center md:justify-start justify-center">
+                <span>Restaurant Address</span>
+                
+              </div>
 
               <div className="space-y-6">
                 {/* Toggle Map Button */}

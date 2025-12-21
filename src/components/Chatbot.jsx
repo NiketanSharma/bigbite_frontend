@@ -11,7 +11,7 @@ const Chatbot = () => {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: 'Hi! I\'m your BigBite assistant. How can I help you today? 🍕',
+      content: 'Hi! I\'m your BigBite assistant. How can I help you today?',
       timestamp: new Date()
     }
   ]);
@@ -288,15 +288,15 @@ const Chatbot = () => {
   const handleOrderPlacement = async (userInput) => {
     const lowerInput = userInput.toLowerCase().trim();
 
-    // Check if user wants to cancel
-    if (lowerInput.includes('cancel') || lowerInput.includes('no') || lowerInput.includes('stop')) {
+    // IMPORTANT: Only handle cancel/no keywords if we're actually in an order flow
+    if (orderPlacementState && (lowerInput.includes('cancel') || lowerInput === 'no' || lowerInput.includes('stop'))) {
       setOrderPlacementState(null);
       setSelectedWishlist(null);
       return "Order cancelled. How else can I help you?";
     }
 
-    // Handle address change request
-    if (lowerInput.includes('address') || lowerInput.includes('location')) {
+    // Handle address change request (only during order flow)
+    if (orderPlacementState && (lowerInput.includes('address') || lowerInput.includes('location'))) {
       return "To change your delivery address, please go to your Profile page and update your address there. Then come back to place your order.";
     }
 
@@ -309,14 +309,14 @@ const Chatbot = () => {
         if (!user?.address || !user?.address?.latitude || !user?.address?.longitude) {
           setOrderPlacementState(null);
           setSelectedWishlist(null);
-          return "❌ You don't have a delivery address set up. Please go to your Profile and add your address first, then come back to place your order.";
+          return "You don't have a delivery address set up. Please go to your Profile and add your address first, then come back to place your order.";
         }
 
         const addressText = user.address.street
           ? `${user.address.street}, ${user.address.city || ''}, ${user.address.state || ''} ${user.address.zipCode || ''}`
           : `Lat: ${user.address.latitude}, Long: ${user.address.longitude}`;
 
-        return `✅ Great! Your order will be delivered to:\n📍 ${addressText}\n\nPayment method: Cash on Delivery (COD)\n\nDo you want to proceed with the order?`;
+        return `Great! Your order will be delivered to:\n ${addressText}\n\nPayment method: Cash on Delivery (COD)\n\nDo you want to proceed with the order?`;
       } else {
         setOrderPlacementState(null);
         setSelectedWishlist(null);
@@ -419,7 +419,7 @@ const Chatbot = () => {
 
             console.log(`🚚 Distance: ${distance.toFixed(2)} km, Delivery Fee: ₹${deliveryFee}`);
           } else {
-            console.warn('⚠️ Missing coordinates, using default delivery fee of ₹40');
+            console.warn('Missing coordinates, using default delivery fee of ₹40');
           }
 
           // Calculate pricing
@@ -477,7 +477,7 @@ const Chatbot = () => {
             const shortOrderId = response.order._id.substring(0, 8).toUpperCase();
 
             // Create detailed breakdown
-            const breakdown = `🎉 Awesome! Your order has been placed successfully!
+            const breakdown = `Awesome! Your order has been placed successfully!
 
 Order ID: #${shortOrderId}
 
@@ -502,7 +502,7 @@ You can track your order from the "My Orders" section. The restaurant will start
           console.error('Order placement error:', error);
           setOrderPlacementState(null);
           setSelectedWishlist(null);
-          return `❌ Sorry, there was an error placing your order: ${error.message}. Please try again or contact support.`;
+          return `Sorry, there was an error placing your order: ${error.message}. Please try again or contact support.`;
         }
       } else {
         setOrderPlacementState(null);
@@ -521,11 +521,11 @@ You can track your order from the "My Orders" section. The restaurant will start
 
     // User wants to order, now check prerequisites
     if (!isAuthenticated) {
-      return "🔒 Please log in first to place an order through the chatbot.";
+      return "Please log in first to place an order through the chatbot.";
     }
 
     if (userWishlists.length === 0) {
-      return "📝 You don't have any wishlists yet. Add items to your wishlist first to place orders through the chatbot!";
+      return "You don't have any wishlists yet. Add items to your wishlist first to place orders through the chatbot!";
     }
 
     if (wishlistName) {
@@ -533,7 +533,7 @@ You can track your order from the "My Orders" section. The restaurant will start
 
       if (!matchedWishlist) {
         const availableWishlists = userWishlists.map(w => `"${w.name}"`).join(', ');
-        return `❌ Cannot find a wishlist matching "${wishlistName}". \n\nYour available wishlists are: ${availableWishlists}\n\nPlease add items to your wishlist to place orders from the chatbot.`;
+        return ` Cannot find a wishlist matching "${wishlistName}". \n\nYour available wishlists are: ${availableWishlists}\n\nPlease add items to your wishlist to place orders from the chatbot.`;
       }
 
       // Found a matching wishlist
@@ -671,6 +671,32 @@ You can track your order from the "My Orders" section. The restaurant will start
     setSelectedWishlist(null);
   };
 
+  // Parse markdown formatting in messages
+  const parseMarkdown = (text) => {
+    if (!text) return 'No content';
+    
+    // Split by lines first to preserve structure
+    const lines = text.split('\n');
+    
+    return lines.map((line, lineIndex) => {
+      // Parse bold **text**
+      const parts = line.split(/(\*\*.*?\*\*)/g);
+      
+      return (
+        <span key={lineIndex}>
+          {parts.map((part, partIndex) => {
+            if (part.startsWith('**') && part.endsWith('**')) {
+              // Bold text
+              return <strong key={partIndex}>{part.slice(2, -2)}</strong>;
+            }
+            return <span key={partIndex}>{part}</span>;
+          })}
+          {lineIndex < lines.length - 1 && <br />}
+        </span>
+      );
+    });
+  };
+
   return (
     <>
       {/* Floating Chat Button */}
@@ -760,7 +786,7 @@ You can track your order from the "My Orders" section. The restaurant will start
                         : 'bg-white text-gray-800 shadow-md'
                         }`}
                     >
-                      <p className="text-sm whitespace-pre-wrap">{message.content || 'No content'}</p>
+                      <p className="text-sm whitespace-pre-wrap">{parseMarkdown(message.content)}</p>
                       <p className={`text-xs mt-1 ${message.role === 'user' ? 'text-white/70' : 'text-gray-400'}`}>
                         {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>

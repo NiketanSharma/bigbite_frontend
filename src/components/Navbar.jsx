@@ -96,7 +96,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-8">
-            <div onClick={() => navigate("/")} className="flex-shrink-0">
+            <div onClick={() => navigate("/")} className="flex-shrink-0 cursor-pointer">
               <h1 className="text-2xl font-bold text-[#FF3B30]">
                 Big<span className="text-[#FFC107]">Bite</span>
               </h1>
@@ -160,88 +160,42 @@ const Navbar = () => {
           </div>
 
           {/* Right Side Menu */}
-          <div className="flex items-center space-x-6">
-            {/* Search Icon */}
-            {/* <button className="hidden md:flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              <span className="font-medium">Search</span>
-            </button> */}
-
-            {/* Offers */}
-            {/* <button className="hidden md:flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-                />
-              </svg>
-              <span className="font-medium">Offers</span>
-            </button> */}
-
-            {/* Help */}
-            {/* <button className="hidden md:flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span className="font-medium">Help</span>
-            </button> */}
-
+          <div className="flex items-center space-x-1 md:space-x-4">
             {/* Cart */}
             <button
               onClick={() => navigate('/cart')}
-              className="relative flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors"
+              className="relative group flex items-center space-x-2 px-2 py-2 md:px-4 rounded-full hover:bg-gradient-to-r hover:from-[#FF3B30]/10 hover:to-[#FFC107]/10 transition-all duration-300"
             >
-              
-              {cartItemsCount > 0 && (
-                <span className="absolute -top-3 -right-4 bg-[#FF3B30] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                  {cartItemsCount}
-                </span>
-              )}
-             <lord-icon
-                src="https://cdn.lordicon.com/wjhxvnmc.json"
-                trigger="hover"
-                colors="primary:#e83a30,secondary:#e8b730"
-                className="size-8">
-              </lord-icon>
+              <div className="relative">
+                <lord-icon
+                  src="https://cdn.lordicon.com/wjhxvnmc.json"
+                  trigger="hover"
+                  colors="primary:#e83a30,secondary:#e8b730"
+                  className="size-7">
+                </lord-icon>
+                {cartItemsCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-gradient-to-r from-[#FF3B30] to-[#ff5549] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-lg animate-pulse">
+                    {cartItemsCount}
+                  </span>
+                )}
+              </div>
+              <span className="hidden md:block font-semibold text-gray-700 group-hover:text-[#FF3B30] transition-colors">
+                Cart
+              </span>
             </button>
 
             {/* Wishlist */}
             {user && (
               <button
                 onClick={() => navigate('/wishlists')}
-                className="hidden md:flex items-center space-x-1 text-gray-700 hover:text-[#FF3B30] transition-colors"
+                className="group flex items-center space-x-2 px-2 py-2 md:px-4 rounded-full hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 transition-all duration-300"
               >
-                <img src={heart} className="size-6" />
-                <span className="font-medium">Wishlist</span>
+                <div className="relative">
+                  <img src={heart} className="size-6 group-hover:scale-110 transition-transform duration-300" />
+                </div>
+                <span className="hidden md:block font-semibold text-gray-700 group-hover:text-[#FF3B30] transition-colors">
+                  La carte
+                </span>
               </button>
             )}
 
@@ -257,7 +211,7 @@ const Navbar = () => {
                       <img
                         src={user.avatar}
                         alt={user.name}
-                        className="w-8 h-8 rounded-full object-cover border-2 border-[#FF3B30]"
+                        className="w-8 h-8 rounded-full object-cover border border-gray-100"
                       />
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-[#FF3B30] text-white flex items-center justify-center font-semibold">
@@ -271,7 +225,7 @@ const Navbar = () => {
                     trigger="hover"
                     stroke="bold"
                     colors="primary:#e83a30,secondary:#e83a30"
-                    className="size-8">
+                    className="size-7">
                   </lord-icon>
                 )}
                 <span className="hidden md:inline font-medium">
