@@ -28,7 +28,7 @@ const RestaurantCard = ({ restaurant }) => {
         {/* Vegetarian Badge */}
         {restaurant.isVegetarian && (
           <div className="absolute top-4 right-4 bg-green-600 text-white px-3 py-1 rounded-lg font-semibold text-sm shadow-lg">
-            🌱 Vegetarian
+            Vegetarian
           </div>
         )}
 
@@ -102,7 +102,7 @@ const RestaurantCard = ({ restaurant }) => {
                 d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
               />
             </svg>
-            <span>{restaurant.distance}</span>
+            <span>Just {restaurant.distance} away</span>
           </div>
         </div>
       </div>
@@ -153,9 +153,39 @@ const FoodItemCard = ({ item, restaurant }) => {
           )}
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-gray-500">
-          <span>🕐 {restaurant.deliveryTime || '30-40 min'}</span>
-          <span>📍 {restaurant.distance || '2.5 km'}</span>
+        <div className="flex items-center gap-2 text-xs text-gray-500 justify-between">
+          <div className="flex items-center space-x-1">
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span>{restaurant.deliveryTime}</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+            </svg>
+            <span>Just {restaurant.distance} away</span>
+          </div>
         </div>
       </div>
     </div>
@@ -266,10 +296,10 @@ const RestaurantExplore = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-10">
-          <h2 className="text-4xl font-bold text-gray-900 mb-3">
+          <h2 className="text-4xl font-bold text-gray-900 mb-3 poppins-bold">
             Explore {viewMode === 'restaurants' ? 'Restaurants' : 'Food Items'}
           </h2>
-          <p className="text-gray-600 text-lg">
+          <p className="text-gray-600 text-lg poppins-regular">
             {searchQuery
               ? `Showing results for "${searchQuery}"`
               : viewMode === 'restaurants' 
@@ -281,13 +311,13 @@ const RestaurantExplore = () => {
           <div className="mt-6 inline-flex rounded-lg bg-white shadow-md p-1">
             <button
               onClick={() => setViewMode('restaurants')}
-              className={`px-6 py-2 rounded-lg font-medium transition-all ${
+              className={`px-6 py-2 rounded-lg font-medium transition-all poppins-regular ${
                 viewMode === 'restaurants'
                   ? 'bg-primary text-white shadow'
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
-              🏪 Restaurants
+              Restaurants
             </button>
             <button
               onClick={() => setViewMode('items')}
@@ -297,28 +327,28 @@ const RestaurantExplore = () => {
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
-              🍕 Food Items
+              Food Items
             </button>
           </div>
         </div>
 
         {/* Category Filter */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-semibold text-gray-800">Filter by Cuisine</h3>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-lg font-semibold text-gray-800 poppins-regular">Filter by Cuisine</h3>
           </div>
-          <div className="flex items-center space-x-3 overflow-x-auto pb-4 scrollbar-hide">
+          <div className="flex items-center space-x-3 overflow-x-auto p-2 scrollbar-hide">
             {categories.map((category) => (
               <button
                 key={category.name}
                 onClick={() => setSelectedCategory(category.name)}
-                className={`flex items-center space-x-2 px-6 py-3 rounded-full font-medium whitespace-nowrap transition-all duration-300 ${
+                className={`flex items-center space-x-2 px-6 py-2 rounded-full font-medium whitespace-nowrap transition-all duration-300 ${
                   selectedCategory === category.name
                     ? 'bg-[#FF3B30] text-white shadow-lg scale-105'
                     : 'bg-white text-gray-700 hover:bg-gray-100 shadow'
                 }`}
               >
-                <span className="text-xl">{category.icon}</span>
+                {/* <span className="text-xl">{category.icon}</span> */}
                 <span>{category.name}</span>
               </button>
             ))}
@@ -328,9 +358,9 @@ const RestaurantExplore = () => {
         {/* Distance Filter */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-semibold text-gray-800">Filter by Distance</h3>
+            <h3 className="text-lg font-semibold text-gray-800 poppins-regular">Filter by Distance</h3>
             {(!userLocation || !userLocation.latitude || !userLocation.longitude) && (
-              <p className="text-xs text-amber-600">⚠️ Select location from navbar to enable distance filter</p>
+              <p className="text-xs text-amber-600">Select location from navbar to enable distance filter</p>
             )}
           </div>
           <div className="flex items-center space-x-3 overflow-x-auto pb-4 scrollbar-hide">
@@ -365,7 +395,7 @@ const RestaurantExplore = () => {
           <p className="text-gray-600">
             <span className="font-semibold text-gray-900">
               {viewMode === 'restaurants' 
-                ? filteredRestaurants.length + filteredRealRestaurants.length
+                ? filteredRealRestaurants.length
                 : (() => {
                     let count = 0;
                     filteredRealRestaurants.forEach(restaurant => {
@@ -381,12 +411,12 @@ const RestaurantExplore = () => {
           {/* Sort Dropdown */}
           <div className="flex items-center space-x-4">
             <span className="text-gray-600 text-sm">Sort by:</span>
-            <select className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF3B30] bg-white">
-              <option>Relevance</option>
-              <option>Rating: High to Low</option>
-              <option>Delivery Time</option>
-              <option>Cost: Low to High</option>
-              <option>Cost: High to Low</option>
+            <select className="px-4 py-2 border border-gray-300 outline-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF3B30] bg-white">
+              <option className=" poppins-regular">Relevance</option>
+              <option className=" poppins-regular">Rating: High to Low</option>
+              <option className=" poppins-regular">Delivery Time</option>
+              <option className=" poppins-regular">Cost: Low to High</option>
+              <option className=" poppins-regular">Cost: High to Low</option>
             </select>
           </div>
         </div>
@@ -394,19 +424,20 @@ const RestaurantExplore = () => {
         {/* Loading State */}
         {loading && (
           <div className="text-center py-16">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
             <p className="mt-4 text-gray-600">Loading {viewMode === 'restaurants' ? 'restaurants' : 'food items'}...</p>
           </div>
         )}
 
         {/* Restaurant View */}
-        {!loading && viewMode === 'restaurants' && (filteredRestaurants.length > 0 || filteredRealRestaurants.length > 0) ? (
+        {!loading && viewMode === 'restaurants' && (filteredRealRestaurants.length > 0) ? (
           <>
+          {/* {console.log(filteredRealRestaurants)} */}
             {/* Real Restaurants from Database */}
             {filteredRealRestaurants.length > 0 && (
               <div className="mb-8">
                 <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">Live</span>
+                  <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm animate-pulse">Live</span>
                   Registered Restaurants
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -442,7 +473,7 @@ const RestaurantExplore = () => {
             )}
 
             {/* Sample Restaurants */}
-            {filteredRestaurants.length > 0 && (
+            {/* {filteredRestaurants.length > 0 && (
               <div>
                 <h3 className="text-xl font-bold text-gray-900 mb-4">Sample Restaurants</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -451,11 +482,11 @@ const RestaurantExplore = () => {
                   ))}
                 </div>
               </div>
-            )}
+            )} */}
           </>
         ) : !loading && viewMode === 'restaurants' ? (
           <div className="text-center py-16">
-            <div className="inline-block p-8 bg-white rounded-full shadow-lg mb-4">
+            <div className="inline-block p-8 bg-white rounded-full shadow-lg mb-4 animate-pulse">
               <svg
                 className="w-16 h-16 text-gray-400"
                 fill="none"
@@ -470,10 +501,10 @@ const RestaurantExplore = () => {
                 />
               </svg>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+            <h3 className="text-2xl font-bold text-gray-900 mb-2 poppins-bold ">
               No restaurants found
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 mb-6 poppins-regular">
               Try adjusting your search or filters
             </p>
             <button
@@ -559,15 +590,16 @@ const RestaurantExplore = () => {
           );
         })()}
       </div>
+      <div className="border-b h-1 border-gray-400 mx-10"></div>
 
       {/* Load More Button */}
-      {filteredRestaurants.length > 0 && (
+      {/* {filteredRestaurants.length > 0 && (
         <div className="text-center mt-12">
           <button className="px-8 py-3 bg-white text-[#FF3B30] border-2 border-[#FF3B30] rounded-full font-semibold hover:bg-[#FF3B30] hover:text-white transition-all duration-300 shadow-lg">
             Load More Restaurants
           </button>
         </div>
-      )}
+      )} */}
     </section>
   );
 };

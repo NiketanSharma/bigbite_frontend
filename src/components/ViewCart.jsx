@@ -7,8 +7,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import LocationPicker from './LocationPicker';
 import axios from 'axios';
+import heart from '../assets/heart.png';
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
+const SERVER_URL = import.meta.env.VITE_SERVER_URL ;
 
 const ViewCart = () => {
   const { cart, updateQuantity, removeFromCart, clearCart, calculateDistance } = useApp();
@@ -450,7 +451,7 @@ const ViewCart = () => {
             <p className="text-gray-600 mb-8">Add some delicious items to get started!</p>
             <button
               onClick={() => navigate('/')}
-              className="bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-dark transition-colors"
+              className="bg-primary text-white px-8 py-3 rounded-lg font-semibold cursor-pointer hover:bg-primary-dark transition-colors"
             >
               Browse Restaurants
             </button>
@@ -658,7 +659,7 @@ const ViewCart = () => {
                   onClick={() => setShowWishlistModal(true)}
                   className="w-full mt-3 border-2 border-primary text-primary py-3 rounded-lg font-semibold hover:bg-primary/10 transition-colors flex items-center justify-center gap-2"
                 >
-                  <span>💝 Save to Wishlist</span>
+                  <span className='flex gap-2 items-center justify-center'><img src={heart} className="size-6" alt="" /> Save to Wishlist</span>
                 </button>
 
                 {/* Continue Shopping */}
@@ -882,7 +883,7 @@ const ViewCart = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                💝 Save to Wishlist
+                <img src={heart} className="sze-8" alt="" /> Save to Wishlist
               </h3>
               
               <p className="text-gray-600 mb-4">

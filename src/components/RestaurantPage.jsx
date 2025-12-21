@@ -137,7 +137,7 @@ const RestaurantPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen pt-20 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
       </div>
     );
   }
@@ -323,7 +323,7 @@ const RestaurantPage = () => {
 
         {/* Cart Summary (Fixed Bottom) */}
         {cart.length > 0 && (
-          <div className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t-2 border-primary p-4 z-50">
+          <div className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t-1 border-gray-500 p-4 z-50">
             <div className="max-w-7xl mx-auto flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">{cart.reduce((sum, item) => sum + item.quantity, 0)} items</p>

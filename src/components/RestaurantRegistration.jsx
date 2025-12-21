@@ -8,7 +8,7 @@ import LocationPicker from './LocationPicker';
 const RestaurantRegistration = () => {
   const { user, checkAuth, setShowLoginModal } = useAuth();
   const navigate = useNavigate();
-  const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
+  const SERVER_URL = import.meta.env.VITE_SERVER_URL ;
   const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
   const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 

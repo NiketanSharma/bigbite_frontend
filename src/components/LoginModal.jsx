@@ -75,12 +75,12 @@ const Login = () => {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           onClick={(e) => e.stopPropagation()}
-          className="relative bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md max-h-[90vh] overflow-y-auto"
+          className="relative bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md max-h-[90vh] overflow-y-auto scrollbar-hide"
         >
           {/* Close Button */}
           <button
             onClick={() => setShowLoginModal(false)}
-            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition cursor-pointer"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -90,9 +90,9 @@ const Login = () => {
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-dark mb-2">
               <span className="text-primary">Big</span>
-              <span className="text-secondary">Bite</span>
+              <span className="text-amber-400">Bite</span>
             </h1>
-            <p className="text-gray-600">Welcome back! Please login to your account</p>
+            <p className="text-gray-600 poppins-regular mt-2">Welcome back! </p>
           </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -162,7 +162,7 @@ const Login = () => {
           onClick={() => {
             window.location.href = `${SERVER_URL}/api/auth/google?redirect=${encodeURIComponent(window.location.pathname)}`;
           }}
-          className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-300 shadow-sm hover:shadow-md"
+          className="cursor-pointer w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-300 shadow-sm hover:shadow-md"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -173,42 +173,19 @@ const Login = () => {
           <span className="font-medium text-gray-700">Continue with Google</span>
         </button>
 
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center ">
           <p className="text-gray-600">
             Don't have an account?{' '}
             <button 
               onClick={switchToSignup}
-              className="text-primary font-semibold hover:underline"
+              className="text-primary font-semibold hover:underline cursor-pointer"
             >
               Sign up
             </button>
           </p>
         </div>
 
-        {/* Quick Login Demo Accounts */}
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <p className="text-xs text-gray-500 text-center mb-3">Quick Demo Login</p>
-          <div className="grid grid-cols-3 gap-2 text-xs">
-            <button
-              onClick={() => setFormData({ email: 'user@demo.com', password: 'demo123' })}
-              className="px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-            >
-              User
-            </button>
-            <button
-              onClick={() => setFormData({ email: 'restaurant@demo.com', password: 'demo123' })}
-              className="px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200"
-            >
-              Restaurant
-            </button>
-            <button
-              onClick={() => setFormData({ email: 'rider@demo.com', password: 'demo123' })}
-              className="px-2 py-1 bg-purple-100 text-purple-700 rounded hover:bg-purple-200"
-            >
-              Rider
-            </button>
-          </div>
-        </div>
+        
         </motion.div>
       </motion.div>
     </AnimatePresence>

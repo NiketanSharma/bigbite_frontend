@@ -14,7 +14,7 @@ const Register = () => {
   });
 
   const { checkAuth, setShowSignupModal, setShowLoginModal } = useAuth();
-  const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
+  const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -95,12 +95,12 @@ const Register = () => {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           onClick={(e) => e.stopPropagation()}
-          className="relative bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md max-h-[90vh] overflow-y-auto"
+          className="relative bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md max-h-[90vh] overflow-y-auto scrollbar-hide"
         >
           {/* Close Button */}
           <button
             onClick={() => setShowSignupModal(false)}
-            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition cursor-pointer"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -110,9 +110,9 @@ const Register = () => {
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-dark mb-2">
               <span className="text-primary">Big</span>
-              <span className="text-secondary">Bite</span>
+              <span className="text-amber-400">Bite</span>
             </h1>
-            <p className="text-gray-600">Create your account and start ordering</p>
+            <p className="text-gray-600">Create your account and enjoy the services</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -172,7 +172,7 @@ const Register = () => {
           <div>
             <label className="block text-sm font-semibold text-dark mb-2">Confirm Password</label>
             <input
-              type="password"
+              type="text"
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
@@ -230,12 +230,12 @@ const Register = () => {
           <span className="font-medium text-gray-700">Continue with Google</span>
         </button>
 
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center ">
           <p className="text-gray-600">
             Already have an account?{' '}
             <button 
               onClick={switchToLogin}
-              className="text-primary font-semibold hover:underline"
+              className="text-primary font-semibold hover:underline cursor-pointer"
             >
               Login
             </button>

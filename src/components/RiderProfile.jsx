@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 const RiderProfile = () => {
   const { user, setuser, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
+  const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
   const [formData, setFormData] = useState({
     name: '',

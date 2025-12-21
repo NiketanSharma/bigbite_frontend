@@ -260,7 +260,7 @@ const WishlistManager = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 pt-20 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
       </div>
     );
   }
@@ -270,7 +270,7 @@ const WishlistManager = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 ">My Wishlists</h1>
+          <h1 className="text-3xl font-bold text-gray-900 ">My Wishlist</h1>
           <p className="text-gray-600 mt-2 poppins-regular">Save your favorite orders for later</p>
         </div>
 

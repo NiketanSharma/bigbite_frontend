@@ -21,12 +21,12 @@ const Chatbot = () => {
   const [usedVoiceInput, setUsedVoiceInput] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [speechTimeout, setSpeechTimeout] = useState(null);
-  
+
   // Order placement state
   const [orderPlacementState, setOrderPlacementState] = useState(null); // null | 'confirming_items' | 'confirming_address' | 'placing_order'
   const [selectedWishlist, setSelectedWishlist] = useState(null);
   const [userWishlists, setUserWishlists] = useState([]);
-  
+
   const messagesEndRef = useRef(null);
   const recognitionRef = useRef(null);
   const synthRef = useRef(window.speechSynthesis);
@@ -42,16 +42,16 @@ const Chatbot = () => {
     try {
       console.log('Chatbot: Fetching wishlists, isAuthenticated:', isAuthenticated);
       console.log('Chatbot: User object:', user);
-      
+
       // Check if we have a valid token
       const token = localStorage.getItem('bigbite_token');
       console.log('Chatbot: Token exists:', !!token);
-      
+
       if (!token) {
         console.log('Chatbot: No token found, skipping wishlist fetch');
         return;
       }
-      
+
       const response = await api.getWishlists();
       console.log('Chatbot: Wishlists response:', response);
       if (response.success) {
@@ -63,10 +63,10 @@ const Chatbot = () => {
     } catch (error) {
       console.error('Error fetching wishlists:', error);
       console.error('Error details:', error.response?.data || error.message);
-      
+
       // Handle authentication errors
-      if (error.message === 'Authentication required. Please log in again.' || 
-          error.response?.status === 401) {
+      if (error.message === 'Authentication required. Please log in again.' ||
+        error.response?.status === 401) {
         console.log('Chatbot: Token is invalid or expired, clearing token');
         localStorage.removeItem('bigbite_token');
         setUserWishlists([]);
@@ -83,7 +83,7 @@ const Chatbot = () => {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = true; 
+      recognitionRef.current.interimResults = true;
       recognitionRef.current.lang = 'en-US';
 
       recognitionRef.current.onstart = () => {
@@ -226,40 +226,40 @@ const Chatbot = () => {
   // Fuzzy string matching to find wishlist by name
   const findWishlistByName = (name) => {
     const normalizedInput = name.toLowerCase().trim();
-    
+
     // Exact match first
     let match = userWishlists.find(w => w.name.toLowerCase() === normalizedInput);
     if (match) return match;
-    
+
     // Partial match
     match = userWishlists.find(w => w.name.toLowerCase().includes(normalizedInput));
     if (match) return match;
-    
+
     // Reverse partial match
     match = userWishlists.find(w => normalizedInput.includes(w.name.toLowerCase()));
     if (match) return match;
-    
+
     // Fuzzy matching with Levenshtein-like distance
     let bestMatch = null;
     let bestScore = 0;
-    
+
     userWishlists.forEach(wishlist => {
       const wishlistName = wishlist.name.toLowerCase();
       let score = 0;
-      
+
       // Character overlap
       for (let char of normalizedInput) {
         if (wishlistName.includes(char)) score++;
       }
-      
+
       score = score / Math.max(normalizedInput.length, wishlistName.length);
-      
+
       if (score > bestScore && score > 0.5) { // 50% match threshold
         bestScore = score;
         bestMatch = wishlist;
       }
     });
-    
+
     return bestMatch;
   };
 
@@ -287,7 +287,7 @@ const Chatbot = () => {
   // Handle order placement flow
   const handleOrderPlacement = async (userInput) => {
     const lowerInput = userInput.toLowerCase().trim();
-    
+
     // Check if user wants to cancel
     if (lowerInput.includes('cancel') || lowerInput.includes('no') || lowerInput.includes('stop')) {
       setOrderPlacementState(null);
@@ -305,17 +305,17 @@ const Chatbot = () => {
       if (lowerInput.includes('yes') || lowerInput.includes('confirm') || lowerInput.includes('sure') || lowerInput.includes('ok')) {
         // Move to address confirmation
         setOrderPlacementState('confirming_address');
-        
+
         if (!user?.address || !user?.address?.latitude || !user?.address?.longitude) {
           setOrderPlacementState(null);
           setSelectedWishlist(null);
           return "❌ You don't have a delivery address set up. Please go to your Profile and add your address first, then come back to place your order.";
         }
-        
-        const addressText = user.address.street 
+
+        const addressText = user.address.street
           ? `${user.address.street}, ${user.address.city || ''}, ${user.address.state || ''} ${user.address.zipCode || ''}`
           : `Lat: ${user.address.latitude}, Long: ${user.address.longitude}`;
-        
+
         return `✅ Great! Your order will be delivered to:\n📍 ${addressText}\n\nPayment method: Cash on Delivery (COD)\n\nDo you want to proceed with the order?`;
       } else {
         setOrderPlacementState(null);
@@ -328,17 +328,17 @@ const Chatbot = () => {
     if (orderPlacementState === 'confirming_address') {
       if (lowerInput.includes('yes') || lowerInput.includes('confirm') || lowerInput.includes('sure') || lowerInput.includes('ok') || lowerInput.includes('proceed')) {
         setOrderPlacementState('placing_order');
-        
+
         try {
           // Log the wishlist structure
           console.log('🔍 Selected wishlist:', selectedWishlist);
           console.log('🔍 Restaurant from wishlist:', selectedWishlist.restaurant);
           console.log('🔍 User data:', user);
           console.log('🔍 User ID check - _id:', user._id, 'id:', user.id);
-          
+
           // Prepare order data
           const restaurant = selectedWishlist.restaurant;
-          
+
           // Extract restaurant ID - handle both populated and unpopulated
           let restaurantId;
           if (typeof restaurant === 'string') {
@@ -348,16 +348,16 @@ const Chatbot = () => {
           } else {
             throw new Error('Restaurant information is missing from wishlist');
           }
-          
+
           console.log('🏪 Extracted restaurant ID:', restaurantId);
-          
+
           // Extract customer ID - handle both _id and id
           const customerId = user._id || user.id;
           if (!customerId) {
             throw new Error('Customer ID is missing');
           }
           console.log('👤 Customer ID:', customerId);
-          
+
           // Ensure all item fields are present
           const items = selectedWishlist.items.map(item => ({
             menuItem: item.menuItem._id,
@@ -390,9 +390,9 @@ const Chatbot = () => {
             const a =
               Math.sin(dLat / 2) * Math.sin(dLat / 2) +
               Math.cos((lat1 * Math.PI) / 180) *
-                Math.cos((lat2 * Math.PI) / 180) *
-                Math.sin(dLon / 2) *
-                Math.sin(dLon / 2);
+              Math.cos((lat2 * Math.PI) / 180) *
+              Math.sin(dLon / 2) *
+              Math.sin(dLon / 2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             return R * c;
           };
@@ -408,15 +408,15 @@ const Chatbot = () => {
               user.address.latitude,
               user.address.longitude
             );
-            
+
             console.log(`📏 Calculated distance: ${distance.toFixed(2)} km`);
             console.log(`   From: Restaurant (${restaurantLat}, ${restaurantLon})`);
             console.log(`   To: Customer (${user.address.latitude}, ${user.address.longitude})`);
-            
+
             // Delivery fee calculation: ₹8 per km
             deliveryFee = distance * 8;
             deliveryFee = Math.round(deliveryFee); // Round to nearest rupee
-            
+
             console.log(`🚚 Distance: ${distance.toFixed(2)} km, Delivery Fee: ₹${deliveryFee}`);
           } else {
             console.warn('⚠️ Missing coordinates, using default delivery fee of ₹40');
@@ -436,8 +436,8 @@ const Chatbot = () => {
             user.address.zipCode,
             user.address.country
           ].filter(Boolean);
-          
-          const fullAddress = addressParts.length > 0 
+
+          const fullAddress = addressParts.length > 0
             ? addressParts.join(', ')
             : `Lat: ${user.address.latitude}, Long: ${user.address.longitude}`;
 
@@ -467,15 +467,15 @@ const Chatbot = () => {
 
           console.log('📦 Final order data being sent:', JSON.stringify(orderData, null, 2));
           const response = await api.placeOrder(orderData);
-          
+
           if (response.success) {
             setOrderPlacementState(null);
             setSelectedWishlist(null);
             toast.success('Order placed successfully! 🎉');
-            
+
             // Format order ID to 8 characters
             const shortOrderId = response.order._id.substring(0, 8).toUpperCase();
-            
+
             // Create detailed breakdown
             const breakdown = `🎉 Awesome! Your order has been placed successfully!
 
@@ -493,7 +493,7 @@ Total Amount:     ₹${totalAmount.toFixed(2)}
 Payment: Cash on Delivery (COD)
 
 You can track your order from the "My Orders" section. The restaurant will start preparing your food soon! 🍕`;
-            
+
             return breakdown;
           } else {
             throw new Error(response.message || 'Failed to place order');
@@ -514,7 +514,7 @@ You can track your order from the "My Orders" section. The restaurant will start
     // Initial order request - use AI to detect intent FIRST, then check wishlists
     // Only proceed if AI confirms this is actually an order request
     const wishlistName = await detectOrderIntentWithAI(userInput);
-    
+
     if (!wishlistName) {
       return null; // Not an order request, let it go to general AI chat
     }
@@ -527,10 +527,10 @@ You can track your order from the "My Orders" section. The restaurant will start
     if (userWishlists.length === 0) {
       return "📝 You don't have any wishlists yet. Add items to your wishlist first to place orders through the chatbot!";
     }
-    
+
     if (wishlistName) {
       const matchedWishlist = findWishlistByName(wishlistName);
-      
+
       if (!matchedWishlist) {
         const availableWishlists = userWishlists.map(w => `"${w.name}"`).join(', ');
         return `❌ Cannot find a wishlist matching "${wishlistName}". \n\nYour available wishlists are: ${availableWishlists}\n\nPlease add items to your wishlist to place orders from the chatbot.`;
@@ -539,14 +539,14 @@ You can track your order from the "My Orders" section. The restaurant will start
       // Found a matching wishlist
       setSelectedWishlist(matchedWishlist);
       setOrderPlacementState('confirming_items');
-      
-      const itemsList = matchedWishlist.items.map(item => 
+
+      const itemsList = matchedWishlist.items.map(item =>
         `  • ${item.menuItem.name} x${item.quantity} - ₹${(item.menuItem.price * item.quantity).toFixed(2)}`
       ).join('\n');
-      
+
       const totalItems = matchedWishlist.items.reduce((sum, item) => sum + item.quantity, 0);
       const totalPrice = matchedWishlist.items.reduce((sum, item) => sum + (item.menuItem.price * item.quantity), 0);
-      
+
       return `🛒 Found your "${matchedWishlist.name}" wishlist!\n\n📋 Your order contains:\n${itemsList}\n\n📊 Total Items: ${totalItems}\n💰 Subtotal: ₹${totalPrice.toFixed(2)}\n\nDo you want to continue with this order?`;
     }
 
@@ -571,7 +571,7 @@ You can track your order from the "My Orders" section. The restaurant will start
     try {
       // First, check if this is an order placement request
       const orderResponse = await handleOrderPlacement(currentInput);
-      
+
       if (orderResponse) {
         // This is an order-related interaction
         const assistantMessage = {
@@ -606,7 +606,7 @@ You can track your order from the "My Orders" section. The restaurant will start
           setUsedVoiceInput(false);
         }
         setIsLoading(false);
-        
+
         return;
       }
 
@@ -683,13 +683,15 @@ You can track your order from the "My Orders" section. The restaurant will start
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:shadow-3xl transition-shadow"
+            className="fixed bottom-24 right-6 w-12 h-12 p-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:shadow-3xl transition-shadow"
           >
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
-            {/* Notification Dot */}
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-pulse"></span>
+            <lord-icon
+              src="https://cdn.lordicon.com/fozsorqm.json"
+              trigger="hover"
+              stroke="bold"
+              colors="primary:#ffffff,secondary:#ffffff"
+              className="size-10">
+            </lord-icon>
           </motion.button>
         )}
       </AnimatePresence>
@@ -701,13 +703,19 @@ You can track your order from the "My Orders" section. The restaurant will start
             initial={{ opacity: 0, y: 100, scale: 0.8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 100, scale: 0.8 }}
-            className="fixed bottom-6 right-6 w-96 h-[600px] bg-white rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden"
+            className="fixed bottom-6 right-6 w-96 h-[80vh] bg-white rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                  🤖
+                  <lord-icon
+                    src="https://cdn.lordicon.com/fozsorqm.json"
+                    trigger="hover"
+                    stroke="bold"
+                    colors="primary:#ffffff,secondary:#ffffff"
+                    classNmae="size-10">
+                  </lord-icon>
                 </div>
                 <div>
                   <h3 className="font-bold">BigBite Assistant</h3>
@@ -740,28 +748,27 @@ You can track your order from the "My Orders" section. The restaurant will start
               {messages.map((message, index) => {
                 console.log('Rendering message:', index, message);
                 return (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-2 ${
-                      message.role === 'user'
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-[80%] rounded-2xl px-4 py-2 ${message.role === 'user'
                         ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white'
                         : 'bg-white text-gray-800 shadow-md'
-                    }`}
-                  >
-                    <p className="text-sm whitespace-pre-wrap">{message.content || 'No content'}</p>
-                    <p className={`text-xs mt-1 ${message.role === 'user' ? 'text-white/70' : 'text-gray-400'}`}>
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
-                </motion.div>
+                        }`}
+                    >
+                      <p className="text-sm whitespace-pre-wrap">{message.content || 'No content'}</p>
+                      <p className={`text-xs mt-1 ${message.role === 'user' ? 'text-white/70' : 'text-gray-400'}`}>
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  </motion.div>
                 );
               })}
-              
+
               {/* Loading indicator */}
               {isLoading && (
                 <div className="flex justify-start">
@@ -774,32 +781,31 @@ You can track your order from the "My Orders" section. The restaurant will start
                   </div>
                 </div>
               )}
-              
+
               <div ref={messagesEndRef} />
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-white border-t border-gray-200">
-              <div className="flex items-end gap-2">
-                <div className="flex-1 relative">
+            <div className="p-4  border-t border-gray-200  ">
+              <div className="flex items-center gap-2 ">
+                <div className="flex-1 relative items-center">
                   <textarea
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="Type your message..."
                     rows="1"
-                    className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+                    className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none focus:border-transparent resize-none"
                     style={{ maxHeight: '100px' }}
                   />
-                  
+
                   {/* Voice button inside input */}
                   <button
                     onClick={isListening ? stopListening : startListening}
-                    className={`absolute right-2 bottom-2 p-2 rounded-lg transition ${
-                      isListening
-                        ? 'bg-red-500 text-white animate-pulse'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
+                    className={`absolute right-2 bottom-2 p-2 rounded-lg transition ${isListening
+                      ? 'bg-red-500 text-white animate-pulse'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
                     title={isListening ? 'Stop listening' : 'Start voice input'}
                   >
                     {isListening ? (
@@ -818,7 +824,7 @@ You can track your order from the "My Orders" section. The restaurant will start
                 <button
                   onClick={sendMessage}
                   disabled={!inputText.trim() || isLoading}
-                  className="p-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  className="cursor-pointer p-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
@@ -838,11 +844,6 @@ You can track your order from the "My Orders" section. The restaurant will start
                   </button>
                 )}
               </div>
-              
-              {/* Helper text */}
-              <p className="text-xs text-gray-400 mt-2 text-center">
-                Press Enter to send • Click 🎤 for voice input
-              </p>
             </div>
           </motion.div>
         )}

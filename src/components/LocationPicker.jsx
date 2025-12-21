@@ -364,7 +364,7 @@ const LocationPicker = ({ onLocationSelect, initialPosition = null, initialSearc
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-            placeholder="Search for a location (e.g., New York, USA)"
+            placeholder="Search for a location e.g Ambala (Haryana)"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
           />
           
@@ -441,36 +441,36 @@ const LocationPicker = ({ onLocationSelect, initialPosition = null, initialSearc
             onClick={() => setMapLayer('street')}
             className={`px-3 py-2 rounded-lg font-medium text-sm shadow-lg transition-all ${
               mapLayer === 'street'
-                ? 'bg-blue-500 text-white'
+                ? 'bg-green-500 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-100'
             }`}
             title="Street View"
           >
-            🗺️ Street
+            Street
           </button>
           <button
             type="button"
             onClick={() => setMapLayer('satellite')}
             className={`px-3 py-2 rounded-lg font-medium text-sm shadow-lg transition-all ${
               mapLayer === 'satellite'
-                ? 'bg-blue-500 text-white'
+                ? 'bg-green-500 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-100'
             }`}
             title="Satellite View"
           >
-            🛰️ Satellite
+            Satellite
           </button>
           <button
             type="button"
             onClick={() => setMapLayer('terrain')}
             className={`px-3 py-2 rounded-lg font-medium text-sm shadow-lg transition-all ${
               mapLayer === 'terrain'
-                ? 'bg-blue-500 text-white'
+                ? 'bg-green-500 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-100'
             }`}
             title="Terrain View"
           >
-            ⛰️ Terrain
+            Terrain
           </button>
         </div>
         <MapContainer
@@ -491,10 +491,6 @@ const LocationPicker = ({ onLocationSelect, initialPosition = null, initialSearc
           />
         </MapContainer>
       </div>
-
-      <p className="text-sm text-gray-600 text-center">
-        📍 Click on the map to select a location or search above
-      </p>
     </div>
   );
 };

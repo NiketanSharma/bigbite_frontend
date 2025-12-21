@@ -180,7 +180,7 @@ const Navbar = () => {
             </button> */}
 
             {/* Offers */}
-            <button className="hidden md:flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors">
+            {/* <button className="hidden md:flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors">
               <svg
                 className="w-5 h-5"
                 fill="none"
@@ -195,7 +195,7 @@ const Navbar = () => {
                 />
               </svg>
               <span className="font-medium">Offers</span>
-            </button>
+            </button> */}
 
             {/* Help */}
             {/* <button className="hidden md:flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors">
@@ -220,27 +220,27 @@ const Navbar = () => {
               onClick={() => navigate('/cart')}
               className="relative flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors"
             >
-              <lord-icon
+              
+              {cartItemsCount > 0 && (
+                <span className="absolute -top-3 -right-4 bg-[#FF3B30] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {cartItemsCount}
+                </span>
+              )}
+             <lord-icon
                 src="https://cdn.lordicon.com/wjhxvnmc.json"
                 trigger="hover"
                 colors="primary:#e83a30,secondary:#e8b730"
                 className="size-8">
               </lord-icon>
-              {cartItemsCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-[#FF3B30] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                  {cartItemsCount}
-                </span>
-              )}
-              <span className="hidden md:inline font-medium">Cart</span>
             </button>
 
             {/* Wishlist */}
             {user && (
               <button
                 onClick={() => navigate('/wishlists')}
-                className="hidden md:flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors"
+                className="hidden md:flex items-center space-x-1 text-gray-700 hover:text-[#FF3B30] transition-colors"
               >
-                <img src={heart} className="size-8"/>
+                <img src={heart} className="size-6" />
                 <span className="font-medium">Wishlist</span>
               </button>
             )}
@@ -266,19 +266,13 @@ const Navbar = () => {
                     )}
                   </>
                 ) : (
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
+                  <lord-icon
+                    src="https://cdn.lordicon.com/kdduutaw.json"
+                    trigger="hover"
+                    stroke="bold"
+                    colors="primary:#e83a30,secondary:#e83a30"
+                    className="size-8">
+                  </lord-icon>
                 )}
                 <span className="hidden md:inline font-medium">
                   {user ? user.name : 'Sign In'}
@@ -287,7 +281,7 @@ const Navbar = () => {
 
               {/* User Menu Dropdown */}
               {showUserMenu && (
-                <div 
+                <div
                   ref={userMenuRef}
                   className="poppins-regular absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2"
                 >
