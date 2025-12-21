@@ -53,7 +53,7 @@ const MapUpdater = ({ center }) => { // this function does the panning of map to
 
 const OrderTracking = () => {
   const { orderId } = useParams();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { socket, joinOrderRoom } = useSocket();
   const navigate = useNavigate();
 
@@ -63,6 +63,9 @@ const OrderTracking = () => {
   const [mapCenter, setMapCenter] = useState([28.6139, 77.2090]); // Default: Delhi
 
   useEffect(() => {
+    // Wait for auth to finish loading
+    if (authLoading) return;
+    
     if (!user || !user.id) {
       navigate('/');
       return;

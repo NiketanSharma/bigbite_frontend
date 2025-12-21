@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import RatingModal from './RatingModal';
 
 const MyOrders = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { socket, joinOrderRoom } = useSocket();
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
@@ -18,6 +18,9 @@ const MyOrders = () => {
   const [selectedOrderForRating, setSelectedOrderForRating] = useState(null);
   // console.log("user in my orders: ",user  )
   useEffect(() => {
+    // Wait for auth to finish loading
+    if (authLoading) return;
+    
     if (!user || !user.id) {
       navigate('/');
       return;

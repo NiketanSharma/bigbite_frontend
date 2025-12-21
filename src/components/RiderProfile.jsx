@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 
 const RiderProfile = () => {
-  const { user, setuser } = useAuth();
+  const { user, setuser, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
 
@@ -31,6 +31,9 @@ const RiderProfile = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // Wait for auth to finish loading
+    if (authLoading) return;
+    
     if (!user || user.role !== 'rider') {
       navigate('/');
       toast.error('Access denied. Rider account required.');

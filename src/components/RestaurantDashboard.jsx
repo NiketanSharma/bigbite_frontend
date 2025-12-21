@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { motion } from 'framer-motion';
@@ -7,8 +8,9 @@ import axios from 'axios';
 import api from '../services/api';
 
 const RestaurantDashboard = () => {
-  const { user, checkAuth, setShowKitchenDetailsModal } = useAuth();
+  const { user, checkAuth, setShowKitchenDetailsModal, loading: authLoading } = useAuth();
   const { socket, authenticateRestaurant, acceptOrder, rejectOrder } = useSocket();
+  const navigate = useNavigate();
   const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
   const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
   const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
@@ -42,6 +44,15 @@ const RestaurantDashboard = () => {
   const subCategories = ['Pizza', 'Burger', 'Pasta', 'Noodles', 'Rice', 'Sandwich', 'Salad', 'Soup', 'Curry', 'Biryani', 'Kebab', 'Meal', 'Cake', 'Dessert', 'Juice', 'Coffee', 'Tea'];
 
   useEffect(() => {
+    // Wait for auth to finish loading
+    if (authLoading) return;
+    
+    if (!user || user.role !== 'restaurant') {
+      navigate('/');
+      toast.error('Access denied. Restaurant account required.');
+      return;
+    }
+    
     fetchMenuItems();
     fetchAllOrders();
     setIsKitchenOpen(user?.restaurantDetails?.isKitchenOpen ?? true);

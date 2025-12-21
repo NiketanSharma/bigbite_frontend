@@ -8,7 +8,7 @@ import axios from 'axios';
 import api from '../services/api';
 
 const WishlistManager = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { calculateDistance, userLocation } = useApp();
   const navigate = useNavigate();
   const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
@@ -28,12 +28,15 @@ const WishlistManager = () => {
   const FREE_DELIVERY_THRESHOLD = 500;
 
   useEffect(() => {
+    // Wait for auth to finish loading
+    if (authLoading) return;
+    
     if (user) {
       fetchWishlists();
     } else {
       navigate('/');
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   const fetchWishlists = async () => {
     try {
