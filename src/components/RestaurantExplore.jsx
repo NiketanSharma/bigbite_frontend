@@ -541,7 +541,7 @@ const RestaurantExplore = () => {
           });
 
           return allMenuItems.length > 0 ? (
-            <div>
+            <div className='mb-8  '>
               <h3 className="text-xl font-bold text-gray-900 mb-4">
                 All Food Items
               </h3>

@@ -9,6 +9,7 @@ import axios from 'axios';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import star from '../assets/star.png';
 
 // Fix for default marker icons in react-leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -565,9 +566,16 @@ const RiderDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Rating</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {riderStats.ratingCount > 0 ? `${riderStats.rating.toFixed(1)} ⭐` : 'No ratings yet'}
-                </p>
+                <div className="text-2xl font-bold text-gray-900 flex items-center gap-1">
+                  {riderStats.ratingCount > 0 ? (
+                    <>
+                      {riderStats.rating.toFixed(1)}
+                      <img src={star} alt="star" className="inline-block w-6 h-6 mx-2" />
+                    </>
+                  ) : (
+                    'No ratings yet'
+                  )}
+                </div>
               </div>
               <div className="bg-yellow-100 p-3 rounded-full">
                 <svg className="w-6 h-6 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
@@ -640,16 +648,39 @@ const RiderDashboard = () => {
                               </p>
                             )}
                             {(() => {
-                              // First try to use the stored distanceToCustomer (for accepted orders)
-                              if (order.distanceToCustomer && typeof order.distanceToCustomer === 'number') {
+                              // First try to use the stored distanceToCustomer (for accepted orders or socket data)
+                              if (order.distanceToCustomer) {
+                                const dist = typeof order.distanceToCustomer === 'number' 
+                                  ? order.distanceToCustomer 
+                                  : parseFloat(order.distanceToCustomer);
+                                if (!isNaN(dist)) {
+                                  return (
+                                    <p className="text-sm text-purple-600 font-medium">
+                                       Delivery Distance: {dist.toFixed(1)} km
+                                    </p>
+                                  );
+                                }
+                              }
+                              
+                              // Try restaurant address from socket event (available orders)
+                              if (order.restaurantAddress?.latitude && 
+                                  order.restaurantAddress?.longitude &&
+                                  order.deliveryAddress?.latitude && 
+                                  order.deliveryAddress?.longitude) {
+                                const distance = calculateDistance(
+                                  order.restaurantAddress.latitude,
+                                  order.restaurantAddress.longitude,
+                                  order.deliveryAddress.latitude,
+                                  order.deliveryAddress.longitude
+                                );
                                 return (
                                   <p className="text-sm text-purple-600 font-medium">
-                                    📦 Delivery Distance: {order.distanceToCustomer.toFixed(1)} km
+                                     Delivery Distance: {distance.toFixed(1)} km
                                   </p>
                                 );
                               }
                               
-                              // Calculate distance from restaurant to customer delivery address
+                              // Try restaurant from populated order (assigned/completed orders)
                               if (order.restaurant?.restaurantDetails?.address?.latitude && 
                                   order.restaurant?.restaurantDetails?.address?.longitude &&
                                   order.deliveryAddress?.latitude && 
@@ -662,7 +693,7 @@ const RiderDashboard = () => {
                                 );
                                 return (
                                   <p className="text-sm text-purple-600 font-medium">
-                                    📦 Delivery Distance: {distance.toFixed(1)} km
+                                     Delivery Distance: {distance.toFixed(1)} km
                                   </p>
                                 );
                               }
@@ -684,7 +715,7 @@ const RiderDashboard = () => {
                         {/* For assigned orders, show simpler distance */}
                         {activeTab !== 'available' && order.distance && (
                           <p className="text-sm text-orange-600 font-medium mt-1">
-                            📍 {order.distance} km away
+                            {order.distance} km away
                           </p>
                         )}
                       </div>
@@ -796,10 +827,10 @@ const RiderDashboard = () => {
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Modal Header */}
-                <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+                <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-50 ">
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900">
-                      Order Details #{viewingOrder.orderId?.slice(-6) || viewingOrder._id?.slice(-6)}
+                      Order Details <span className='text-xl text-gray-700'>#{viewingOrder.orderId?.slice(-8).toUpperCase() || viewingOrder._id?.slice(-8).toUpperCase()}</span>
                     </h2>
                     <p className="text-sm text-gray-600 mt-1">
                       Restaurant: {viewingOrder.restaurantName}
@@ -818,14 +849,15 @@ const RiderDashboard = () => {
                 {/* Modal Content */}
                 <div className="p-6 space-y-6">
                   {/* Map */}
-                  <div className="h-80 rounded-lg overflow-hidden border border-gray-200">
+                  <div className="h-80 rounded-lg overflow-hidden border border-gray-200 ">
                     <MapContainer
                       center={[
                         viewingOrder.restaurantAddress?.latitude || 0,
                         viewingOrder.restaurantAddress?.longitude || 0
                       ]}
                       zoom={13}
-                      style={{ height: '100%', width: '100%' }}
+                      style={{ height: '100%', width: '100%' }} 
+                      className='z-0'
                     >
                       <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -897,12 +929,31 @@ const RiderDashboard = () => {
                       <p className="text-sm text-gray-600 mb-1">Distance to Customer</p>
                       <p className="text-lg font-semibold text-green-600">
                         {(() => {
-                          // First try to use the stored distanceToCustomer (for accepted orders)
-                          if (viewingOrder.distanceToCustomer && typeof viewingOrder.distanceToCustomer === 'number') {
-                            return `${viewingOrder.distanceToCustomer.toFixed(1)} km`;
+                          // First try to use the stored distanceToCustomer (for accepted orders or socket data)
+                          if (viewingOrder.distanceToCustomer) {
+                            const dist = typeof viewingOrder.distanceToCustomer === 'number' 
+                              ? viewingOrder.distanceToCustomer 
+                              : parseFloat(viewingOrder.distanceToCustomer);
+                            if (!isNaN(dist)) {
+                              return `${dist.toFixed(1)} km`;
+                            }
                           }
                           
-                          // Calculate distance from restaurant to customer delivery address
+                          // Try restaurant address from socket event (available orders)
+                          if (viewingOrder.restaurantAddress?.latitude && 
+                              viewingOrder.restaurantAddress?.longitude &&
+                              viewingOrder.deliveryAddress?.latitude && 
+                              viewingOrder.deliveryAddress?.longitude) {
+                            const distance = calculateDistance(
+                              viewingOrder.restaurantAddress.latitude,
+                              viewingOrder.restaurantAddress.longitude,
+                              viewingOrder.deliveryAddress.latitude,
+                              viewingOrder.deliveryAddress.longitude
+                            );
+                            return `${distance.toFixed(1)} km`;
+                          }
+                          
+                          // Try restaurant from populated order (assigned/completed orders)
                           if (viewingOrder.restaurant?.restaurantDetails?.address?.latitude && 
                               viewingOrder.restaurant?.restaurantDetails?.address?.longitude &&
                               viewingOrder.deliveryAddress?.latitude && 
@@ -936,7 +987,7 @@ const RiderDashboard = () => {
 
                   {/* Delivery Address */}
                   <div className="border border-gray-200 rounded-lg p-4">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-2">📍 Delivery Address</h3>
+                    <h3 className="text-sm font-semibold text-gray-900 mb-2"> Delivery Address</h3>
                     <p className="text-gray-700">
                       {viewingOrder.deliveryAddress?.fullAddress || 'Address not available'}
                     </p>
@@ -945,7 +996,7 @@ const RiderDashboard = () => {
                   {/* Order Items */}
                   {viewingOrder.items && viewingOrder.items.length > 0 && (
                     <div className="border border-gray-200 rounded-lg p-4">
-                      <h3 className="text-sm font-semibold text-gray-900 mb-3">📦 Order Items</h3>
+                      <h3 className="text-sm font-semibold text-gray-900 mb-3">Order Items</h3>
                       <div className="space-y-2">
                         {viewingOrder.items.map((item, idx) => (
                           <div key={idx} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">

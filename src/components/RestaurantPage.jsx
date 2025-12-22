@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import locationpin from '../assets/location-pin.png';
 import star from '../assets/star.png';
 
@@ -10,6 +11,7 @@ const RestaurantPage = () => {
   const { restaurantId, itemId } = useParams();
   const navigate = useNavigate();
   const { addToCart: addToGlobalCart, cart, clearCart, userLocation, calculateDistance } = useApp();
+  const { user, setShowLoginModal } = useAuth();
   const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
 
   const [restaurant, setRestaurant] = useState(null);
@@ -79,6 +81,13 @@ const RestaurantPage = () => {
 
   const addToCart = (item) => {
     console.log('🛒 Adding to cart:', { item, restaurant });
+    
+    // Check if user is logged in
+    if (!user) {
+      toast.error('Please login to add items to cart');
+      setShowLoginModal(true);
+      return;
+    }
     
     // Check if cart has items from a different restaurant
     if (cart.length > 0) {

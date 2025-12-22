@@ -494,7 +494,7 @@ const RestaurantDashboard = () => {
                         </p>
                         {order.rider && (
                           <p className="text-sm text-blue-600 font-medium mt-1">
-                            🏍️ Rider: {order.rider.name} | {order.rider.phone}
+                            Rider: {order.rider.name} | {order.rider.phone}
                           </p>
                         )}
                         <p className="text-xs text-gray-500 mt-1">
@@ -502,7 +502,7 @@ const RestaurantDashboard = () => {
                         </p>
                         {order.status === 'auto_rejected' && (
                           <p className="text-xs text-red-600 mt-1">
-                            ⏱️ Auto-rejected: No action taken within 10 minutes
+                            Auto-rejected: No action taken within 10 minutes
                           </p>
                         )}
                         {order.cancellationReason && (
