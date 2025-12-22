@@ -49,14 +49,13 @@ const RiderDashboard = () => {
 
   const [orders, setOrders] = useState([]);
   const [availableOrders, setAvailableOrders] = useState(() => {
-    // Only load from sessionStorage if rider is available
-    // This prevents showing stale orders from previous sessions
+    // Load from sessionStorage on refresh
     const saved = sessionStorage.getItem('availableOrders');
     if (!saved) return [];
     
     try {
       const orders = JSON.parse(saved);
-      // Filter out orders older than 30 minutes
+      // Filter out orders older than 10 minutes
       const tenMinutesAgo = Date.now() - (10 * 60 * 1000);
       return orders.filter(order => {
         const orderTime = new Date(order.createdAt).getTime();
@@ -106,9 +105,8 @@ const RiderDashboard = () => {
     // Set initial availability from user's riderDetails
     if (user.riderDetails?.isAvailable !== undefined) {
       setIsAvailable(user.riderDetails.isAvailable);
-      // Clear sessionStorage if rider is not available on mount
+      // Clear available orders if rider is not available on mount
       if (!user.riderDetails.isAvailable) {
-        sessionStorage.removeItem('availableOrders');
         setAvailableOrders([]);
       }
     }
@@ -156,30 +154,43 @@ const RiderDashboard = () => {
   
   // Auto-refresh available orders every 30 seconds when on available tab
   useEffect(() => {
-    if (activeTab !== 'available') return;
+    if (activeTab !== 'available') {
+      console.log('⏭️ Not on available tab, skipping auto-refresh');
+      return;
+    }
 
+    console.log('🔄 Starting auto-refresh interval for available orders');
     const refreshInterval = setInterval(async () => {
       try {
+        console.log('⏰ Auto-refresh triggered');
+        // Include location if available
+        const params = currentLocation 
+          ? { latitude: currentLocation.latitude, longitude: currentLocation.longitude }
+          : {};
+        console.log('📡 Refreshing with params:', params);
+
         const response = await axios.get(
           `${import.meta.env.VITE_SERVER_URL}/api/orders/available`,
-          { withCredentials: true }
+          { 
+            params,
+            withCredentials: true 
+          }
         );
         if (response.data.success) {
-          // Merge with existing orders from sessionStorage, removing duplicates
-          setAvailableOrders(prevOrders => {
-            const newOrders = response.data.orders;
-            const existingIds = new Set(prevOrders.map(o => o.orderId || o._id));
-            const uniqueNew = newOrders.filter(o => !existingIds.has(o.orderId || o._id));
-            return [...prevOrders, ...uniqueNew];
-          });
+          console.log(`🔄 Auto-refresh: Got ${response.data.orders.length} orders`);
+          // Replace orders completely with fresh data from backend
+          setAvailableOrders(response.data.orders);
         }
       } catch (error) {
-        console.error('Error refreshing available orders:', error);
+        console.error('❌ Error refreshing available orders:', error);
       }
     }, 30000); // Refresh every 30 seconds
 
-    return () => clearInterval(refreshInterval);
-  }, [activeTab]);
+    return () => {
+      console.log('🛑 Clearing auto-refresh interval');
+      clearInterval(refreshInterval);
+    };
+  }, [activeTab, currentLocation]);
 
   // Function to play alarm sound for 10 seconds
   const playAlarmSound = () => {
@@ -249,16 +260,52 @@ const RiderDashboard = () => {
 
   const fetchOrders = async () => {
     try {
+      console.log(`🔄 fetchOrders called - activeTab: ${activeTab}`);
       setLoading(true);
       
       if (activeTab === 'available') {
-        // Fetch all available orders (awaiting_rider status)
+        console.log('📦 Fetching available orders...');
+        // Get rider's current location first
+        let location = currentLocation;
+        console.log('📍 Current location:', location);
+        
+        // If location not yet set, try to get it
+        if (!location && 'geolocation' in navigator) {
+          console.log('🔍 Getting fresh location...');
+          try {
+            const position = await new Promise((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+            });
+            location = {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            };
+            console.log('✅ Got location:', location);
+            setCurrentLocation(location);
+          } catch (error) {
+            console.error('❌ Error getting location:', error);
+          }
+        }
+
+        // Fetch all available orders (awaiting_rider status) within distance
+        const params = location 
+          ? { latitude: location.latitude, longitude: location.longitude }
+          : {};
+        console.log('📡 Fetching with params:', params);
+          
         const response = await axios.get(
           `${import.meta.env.VITE_SERVER_URL}/api/orders/available`,
-          { withCredentials: true }
+          { 
+            params,
+            withCredentials: true 
+          }
         );
+        console.log('📥 Response:', response.data);
         if (response.data.success) {
+          console.log(`✅ Setting ${response.data.orders.length} available orders`);
           setAvailableOrders(response.data.orders);
+        } else {
+          console.log('❌ Response not successful');
         }
       } else if (activeTab === 'assigned') {
         // Fetch rider's assigned orders
@@ -382,7 +429,6 @@ const RiderDashboard = () => {
           leaveRiderPool(user.id);
           // Clear available orders when going unavailable
           setAvailableOrders([]);
-          sessionStorage.removeItem('availableOrders');
           toast.success('Made unavailable successfully! You won\'t receive new orders.');
         }
       }
@@ -466,14 +512,14 @@ const RiderDashboard = () => {
     console.log('✅ Setting up socket listeners for rider');
 
     socket.on('new_order_available', (orderData) => {
-      console.log('📦 New order available:', orderData);
+      console.log('🆕 New order available:', orderData);
       
       // Play alarm sound
       playAlarmSound();
       
       setAvailableOrders((prev) => {
         const updated = [orderData, ...prev];
-        console.log('📋 Updated available orders:', updated.length);
+        console.log(`📈 Added new order, ${prev.length} -> ${updated.length} orders`);
         return updated;
       });
       toast.success(`New order from ${orderData.restaurantName}!`, {
@@ -483,10 +529,10 @@ const RiderDashboard = () => {
     });
 
     socket.on('order_taken', (data) => {
-      console.log('Order taken by another rider:', data.orderId);
+      console.log('🚫 Order taken by another rider:', data.orderId);
       setAvailableOrders((prev) => {
         const updated = prev.filter((order) => order.orderId !== data.orderId);
-        sessionStorage.setItem('availableOrders', JSON.stringify(updated));
+        console.log(`📉 Removed order, ${prev.length} -> ${updated.length} orders`);
         return updated;
       });
     });
@@ -522,13 +568,14 @@ const RiderDashboard = () => {
 
   const acceptOrder = async (orderId) => {
     try {
+      console.log('✅ Accepting order:', orderId);
       // Use socket to accept order instead of HTTP
       acceptRiderOrder(orderId, user.id);
       toast.success('Order accepted!');
-      // Remove from available orders and update sessionStorage
+      // Remove from available orders
       setAvailableOrders((prev) => {
         const updated = prev.filter((order) => order.orderId !== orderId);
-        sessionStorage.setItem('availableOrders', JSON.stringify(updated));
+        console.log(`📉 Removed accepted order, ${prev.length} -> ${updated.length} orders`);
         return updated;
       });
       // Switch to assigned tab and fetch after state updates
