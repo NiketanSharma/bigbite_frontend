@@ -138,6 +138,25 @@ class ApiService {
     });
   }
 
+  // Payment endpoints
+  async createPaymentOrder(amount) {
+    return this.request('/payment/create-order', {
+      method: 'POST',
+      body: JSON.stringify({ amount }),
+    });
+  }
+
+  async verifyPayment(paymentData) {
+    return this.request('/payment/verify', {
+      method: 'POST',
+      body: JSON.stringify(paymentData),
+    });
+  }
+
+  async getPaymentStatus(orderId) {
+    return this.request(`/payment/status/${orderId}`);
+  }
+
   // Restaurant endpoints
   async getMenuItems() {
     return this.request('/restaurant/menu');

@@ -190,6 +190,109 @@ const WishlistManager = () => {
     setCheckoutWishlist(wishlist);
   };
 
+  const handleOnlinePayment = async (orderData) => {
+    try {
+      toast.loading('Initializing payment...', { id: 'payment' });
+
+      // Create Razorpay order
+      const paymentResponse = await api.createPaymentOrder(orderData.pricing.totalAmount);
+
+      if (!paymentResponse.success) {
+        throw new Error('Failed to create payment order');
+      }
+
+      toast.dismiss('payment');
+
+      // Load Razorpay script if not already loaded
+      if (!window.Razorpay) {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        document.body.appendChild(script);
+        
+        await new Promise((resolve, reject) => {
+          script.onload = resolve;
+          script.onerror = reject;
+        });
+      }
+
+      // Configure Razorpay checkout options
+      const options = {
+        key: paymentResponse.key, // Razorpay key_id from backend
+        amount: paymentResponse.order.amount, // Amount in paise
+        currency: paymentResponse.order.currency,
+        name: 'BigBite',
+        description: 'Educational project – service access',
+        order_id: paymentResponse.order.id,
+        prefill: {
+          name: user.name || '',
+          email: user.email || '',
+          contact: user.phone || '',
+        },
+        theme: {
+          color: '#f97316', // Orange color
+        },
+        handler: async function (response) {
+          // Payment successful - verify on backend
+          try {
+            toast.loading('Verifying payment...', { id: 'verify-payment' });
+
+            const verifyResponse = await api.verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+
+            if (verifyResponse.success) {
+              toast.success('Payment verified!', { id: 'verify-payment' });
+
+              // Now place the order with payment details
+              orderData.razorpay_order_id = response.razorpay_order_id;
+              
+              toast.loading('Placing your order...', { id: 'place-order' });
+              
+              const orderResponse = await api.placeOrder(orderData);
+
+              if (orderResponse.success) {
+                toast.success('Order placed successfully! 🎉', { id: 'place-order' });
+                
+                // Clear state and navigate
+                setCheckoutWishlist(null);
+                setDeliveryInstructions('');
+                
+                // Navigate to order tracking
+                navigate(`/track-order/${orderResponse.order._id}`);
+              } else {
+                throw new Error(orderResponse.message || 'Failed to place order');
+              }
+            } else {
+              throw new Error('Payment verification failed');
+            }
+          } catch (error) {
+            console.error('Error verifying payment:', error);
+            toast.error(error.message || 'Payment verification failed', {
+              id: 'verify-payment',
+            });
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            toast.error('Payment cancelled', { id: 'payment' });
+          },
+        },
+      };
+
+      // Open Razorpay checkout
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } catch (error) {
+      console.error('Error in online payment:', error);
+      toast.error(error.message || 'Payment initialization failed', {
+        id: 'payment',
+      });
+    }
+  };
+
   const handlePlaceOrder = async () => {
     if (!checkoutWishlist) return;
 
@@ -237,6 +340,13 @@ const WishlistManager = () => {
         }
       };
 
+      // Handle online payment separately
+      if (paymentMethod === 'online') {
+        await handleOnlinePayment(orderData);
+        return;
+      }
+
+      // Handle COD payment
       toast.loading('Placing your order...', { id: 'wishlist-order' });
 
       const response = await axios.post(

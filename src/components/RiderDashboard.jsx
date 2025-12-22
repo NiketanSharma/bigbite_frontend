@@ -985,6 +985,44 @@ const RiderDashboard = () => {
                     </div>
                   </div>
 
+                  {/* Payment Information */}
+                  <div className="border border-green-200 rounded-lg p-4 bg-gradient-to-br from-green-50 to-emerald-50">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-3">💳 Payment Information</h3>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Payment Method</span>
+                        <span className="text-sm font-semibold text-gray-900">
+                          {viewingOrder.paymentMethod === 'cod' ? '💵 Cash on Delivery' : '💳 Online Payment'}
+                        </span>
+                      </div>
+                      {viewingOrder.paymentMethod === 'online' && viewingOrder.paymentStatus === 'paid' && (
+                        <>
+                          <div className="flex items-center justify-between pt-2 border-t border-green-200">
+                            <span className="text-sm text-gray-600">Payment Status</span>
+                            <span className="text-sm font-semibold text-green-600">
+                              ✓ Paid Successfully
+                            </span>
+                          </div>
+                          {viewingOrder.razorpay_payment_id && (
+                            <div className="pt-2 border-t border-green-200">
+                              <span className="text-xs text-gray-500">Transaction ID</span>
+                              <p className="text-xs font-mono text-gray-700 break-all mt-1">
+                                {viewingOrder.razorpay_payment_id}
+                              </p>
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {viewingOrder.paymentMethod === 'cod' && (
+                        <div className="pt-2 border-t border-green-200">
+                          <p className="text-xs text-orange-600 font-medium">
+                            💡 Collect ₹{viewingOrder.totalAmount?.toFixed(2)} from customer
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   {/* Delivery Address */}
                   <div className="border border-gray-200 rounded-lg p-4">
                     <h3 className="text-sm font-semibold text-gray-900 mb-2"> Delivery Address</h3>

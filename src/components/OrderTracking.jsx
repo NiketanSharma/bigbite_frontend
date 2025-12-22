@@ -303,28 +303,51 @@ const OrderTracking = () => {
   const restaurantLng = order.restaurant?.restaurantDetails?.address?.longitude;
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white pt-20 pb-12">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-8">
           <button
             onClick={() => navigate(user?.role === 'rider' ? '/rider/dashboard' : '/orders')}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+            className="flex items-center text-gray-600 hover:text-orange-600 mb-4 transition-colors group"
           >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             {user?.role === 'rider' ? 'Back to Dashboard' : 'Back to Orders'}
           </button>
-          <h1 className="text-3xl font-bold text-gray-900">Track Your Order</h1>
-          <p className="text-gray-600 mt-2">
-            Order #{order._id.slice(-8).toUpperCase()}
-          </p>
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">Track Your Order</h1>
+              <p className="text-gray-600 flex items-center gap-2">
+                <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
+                  #{order._id.slice(-8).toUpperCase()}
+                </span>
+                <span className="text-sm">
+                  {new Date(order.createdAt).toLocaleDateString()} at {new Date(order.createdAt).toLocaleTimeString()}
+                </span>
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className={`px-4 py-2 rounded-full text-sm font-semibold ${
+                order.status === 'delivered' ? 'bg-green-100 text-green-700' :
+                order.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                'bg-blue-100 text-blue-700'
+              }`}>
+                {order.status.replace('_', ' ').toUpperCase()}
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column - Map */}
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden h-[500px] relative z-0">
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* Left Section - Map (Takes 2 columns on XL screens) */}
+          <div className="xl:col-span-2 space-y-6">
+            {/* Map Card */}
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+              
+              <div className="h-[500px] relative z-0">
             <MapContainer
               center={mapCenter}
               zoom={13}
@@ -378,13 +401,17 @@ const OrderTracking = () => {
                 </Marker>
               )}
             </MapContainer>
-          </div>
+              </div>
+            </div>
 
-          {/* Right Column - Order Details */}
-          <div className="space-y-6">
-            {/* Status Timeline */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Order Status</h2>
+            {/* Status Timeline Card */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
+                <svg className="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Order Status Timeline
+              </h2>
               <div className="space-y-4">
                 {/* {console.log('timeline:',timeline)} */}
                 {timeline.map((step, index) => (
@@ -393,20 +420,20 @@ const OrderTracking = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="flex items-start"
+                    className="flex items-start group"
                   >
                     <div className="flex flex-col items-center mr-4">
                       <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all ${
                           step.completed
-                            ? 'bg-green-500'
+                            ? 'bg-gradient-to-br from-green-500 to-green-600'
                             : step.active
-                            ? 'bg-orange-500 animate-pulse'
+                            ? 'bg-gradient-to-br from-orange-500 to-orange-600 animate-pulse'
                             : 'bg-gray-300'
                         }`}
                       >
                         {step.completed ? (
-                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                             <path
                               fillRule="evenodd"
                               d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -414,27 +441,27 @@ const OrderTracking = () => {
                             />
                           </svg>
                         ) : (
-                          <div className="w-3 h-3 bg-white rounded-full"></div>
+                          <div className="w-4 h-4 bg-white rounded-full"></div>
                         )}
                       </div>
                       {index < timeline.length - 1 && (
                         <div
-                          className={`w-0.5 h-12 ${
-                            step.completed ? 'bg-green-500' : 'bg-gray-300'
+                          className={`w-1 h-16 rounded-full transition-all ${
+                            step.completed ? 'bg-gradient-to-b from-green-500 to-green-600' : 'bg-gray-300'
                           }`}
                         ></div>
                       )}
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 pb-8">
                       <p
-                        className={`font-medium ${
+                        className={`font-semibold text-lg ${
                           step.active ? 'text-orange-600' : step.completed ? 'text-gray-900' : 'text-gray-400'
                         }`}
                       >
                         {step.label}
                       </p>
                       {step.time && (
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 mt-1">
                           {new Date(step.time).toLocaleString()}
                         </p>
                       )}
@@ -443,27 +470,48 @@ const OrderTracking = () => {
                 ))}
               </div>
             </div>
+          </div>
 
-            {/* Order Details */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Order Details</h2>
+          {/* Right Sidebar - Order Details */}
+          <div className="xl:col-span-1 space-y-6">
+            {/* Restaurant & Items Card */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
+                <svg className="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                Order Details
+              </h2>
               
               {/* Restaurant Info */}
-              <div className="mb-4">
-                <h3 className="text-sm font-medium text-gray-700">Restaurant</h3>
-                <p className="text-gray-900">{order.restaurant?.restaurantDetails?.kitchenName}</p>
+              <div className="mb-6 p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border border-orange-200">
+                <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  Restaurant
+                </h3>
+                <p className="text-gray-900 font-semibold text-lg">{order.restaurant?.restaurantDetails?.kitchenName}</p>
               </div>
 
               {/* Items */}
-              <div className="mb-4">
-                <h3 className="text-sm font-medium text-gray-700 mb-2">Items</h3>
-                <div className="space-y-2">
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                  <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  Items Ordered ({order.items.length})
+                </h3>
+                <div className="space-y-3">
                   {order.items.map((item, index) => (
-                    <div key={index} className="flex justify-between text-sm">
-                      <span className="text-gray-600">
-                        {item.quantity}x {item.name}
-                      </span>
-                      <span className="text-gray-900 font-medium">
+                    <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <span className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-sm font-semibold">
+                          {item.quantity}x
+                        </span>
+                        <span className="text-gray-700 font-medium">{item.name}</span>
+                      </div>
+                      <span className="text-gray-900 font-semibold">
                         ₹{(item.price * item.quantity).toFixed(2)}
                       </span>
                     </div>
@@ -473,20 +521,96 @@ const OrderTracking = () => {
 
               {/* Rider Info */}
               {order.rider && (
-                <div className="mb-4 p-3 bg-orange-50 rounded-lg">
-                  <h3 className="text-sm font-medium text-gray-700 mb-1">Delivery Partner</h3>
-                  <p className="text-gray-900">{order.rider.name}</p>
-                  <p className="text-sm text-gray-600">{order.rider.phone}</p>
+                <div className="mb-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Delivery Partner
+                  </h3>
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-blue-200 flex items-center justify-center">
+                      <span className="text-blue-700 font-bold text-lg">
+                        {order.rider.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-gray-900 font-semibold">{order.rider.name}</p>
+                      <p className="text-sm text-gray-600 flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                        {order.rider.phone}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
 
-              {/* Total */}
-              <div className="border-t pt-4">
-                <div className="flex justify-between text-lg font-bold">
-                  <span>Total Amount</span>
-                  <span>₹{order.totalAmount.toFixed(2)}</span>
+              {/* Payment Information */}
+              <div className="mb-6 p-5 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-200 shadow-sm">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                  Payment Details
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Payment Method</span>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {order.paymentMethod === 'cod' ? '💵 Cash on Delivery' : '💳 Online Payment'}
+                    </span>
+                  </div>
+                  {order.paymentMethod === 'online' && order.paymentStatus === 'paid' && (
+                    <>
+                      <div className="flex items-center justify-between pt-2 border-t border-green-200">
+                        <span className="text-sm text-gray-600">Payment Status</span>
+                        <span className="text-sm font-semibold text-green-600 flex items-center gap-1">
+                          ✓ Payment Successful
+                        </span>
+                      </div>
+                      {order.razorpay_payment_id && (
+                        <div className="pt-2 border-t border-green-200">
+                          <span className="text-xs text-gray-500">Transaction ID</span>
+                          <p className="text-xs font-mono text-gray-700 break-all mt-1 bg-white p-2 rounded">
+                            {order.razorpay_payment_id}
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {order.paymentMethod === 'cod' && (
+                    <div className="pt-2 border-t border-green-200">
+                      <p className="text-xs text-gray-600">
+                        💡 Please keep exact change ready for the delivery partner
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
+
+              {/* Total */}
+              <div className="border-t-2 border-gray-200 pt-4 mt-4">
+                <div className="flex justify-between items-center p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl">
+                  <span className="text-lg font-semibold text-gray-700">Total Amount</span>
+                  <span className="text-2xl font-bold text-orange-600">₹{order.totalAmount.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Delivery Address Card */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Delivery Address
+              </h3>
+              <p className="text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-lg">
+                {order.deliveryAddress?.fullAddress || 'Address not available'}
+              </p>
             </div>
           </div>
         </div>
