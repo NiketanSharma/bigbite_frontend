@@ -73,6 +73,8 @@ const RiderDashboard = () => {
   const [currentLocation, setCurrentLocation] = useState(null);
   const [viewingOrder, setViewingOrder] = useState(null); // For inline order details modal
   const [hasLocationPermission, setHasLocationPermission] = useState(false); // Track location permission
+  const [assignedOrders, setAssignedOrders] = useState([]); // Separate state for assigned orders
+  const [completedOrders, setCompletedOrders] = useState([]); // Separate state for completed orders
   const [riderStats, setRiderStats] = useState({
     totalDeliveries: 0,
     totalEarnings: 0,
@@ -112,7 +114,20 @@ const RiderDashboard = () => {
     }
     fetchOrders();
     fetchRiderStats(); // Fetch rider stats on mount and tab change
+    fetchAllOrderCounts(); // Fetch all order counts for badges
   }, [user, activeTab, authLoading]);
+
+  // Periodically refresh all order counts for real-time badge updates
+  useEffect(() => {
+    if (!user || authLoading) return;
+    
+    const interval = setInterval(() => {
+      console.log('🔄 Auto-refreshing all order counts...');
+      fetchAllOrderCounts();
+    }, 30000); // Every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, [user, authLoading, isAvailable, currentLocation]);
 
   useEffect(() => {
     if(user&&user.role==='rider'){
@@ -334,6 +349,36 @@ const RiderDashboard = () => {
     }
   };
 
+  // Fetch all order counts independently for real-time badge updates
+  const fetchAllOrderCounts = async () => {
+    try {
+      // Fetch assigned and completed orders
+      const response = await axios.get(
+        `${import.meta.env.VITE_SERVER_URL}/api/orders/rider/${user.id}`,
+        { withCredentials: true }
+      );
+      if (response.data.success) {
+        const allOrders = response.data.orders;
+        setAssignedOrders(allOrders.filter(o => !['delivered', 'cancelled'].includes(o.status)));
+        setCompletedOrders(allOrders.filter(o => ['delivered', 'cancelled'].includes(o.status)));
+      }
+
+      // Fetch available orders if rider is available
+      if (isAvailable && currentLocation) {
+        const params = { latitude: currentLocation.latitude, longitude: currentLocation.longitude };
+        const availableResponse = await axios.get(
+          `${import.meta.env.VITE_SERVER_URL}/api/orders/available`,
+          { params, withCredentials: true }
+        );
+        if (availableResponse.data.success) {
+          setAvailableOrders(availableResponse.data.orders);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching order counts:', error);
+    }
+  };
+
   const fetchRiderStats = async () => {
     try {
       const response = await axios.get(
@@ -540,6 +585,10 @@ const RiderDashboard = () => {
     // Listen for order status changes to refresh assigned orders
     socket.on('order_status_changed', (data) => {
       console.log('📊 Order status changed:', data);
+      // Always refresh all order counts for real-time badge updates
+      fetchAllOrderCounts();
+      
+      // Also refresh current tab view if needed
       if (activeTab === 'assigned' || activeTab === 'completed') {
         fetchOrders();
       }
@@ -550,6 +599,8 @@ const RiderDashboard = () => {
     // Listen for order acceptance confirmation
     socket.on('order_accepted_confirmation', (data) => {
       console.log('✅ Order acceptance confirmed:', data);
+      // Refresh all order counts for real-time badge updates
+      fetchAllOrderCounts();
       // Refresh assigned orders and stats immediately
       if (activeTab === 'assigned') {
         fetchOrders();
@@ -593,8 +644,18 @@ const RiderDashboard = () => {
 
   const updateOrderStatus = async (orderId, status) => {
     try {
-      // Optimistically update the UI immediately
+      // Optimistically update the UI immediately for all order states
       setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order._id === orderId ? { ...order, status } : order
+        )
+      );
+      setAssignedOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order._id === orderId ? { ...order, status } : order
+        )
+      );
+      setCompletedOrders((prevOrders) =>
         prevOrders.map((order) =>
           order._id === orderId ? { ...order, status } : order
         )
@@ -614,6 +675,7 @@ const RiderDashboard = () => {
       // Fetch fresh data after a short delay to sync with backend
       setTimeout(() => {
         fetchOrders();
+        fetchAllOrderCounts();
       }, 1000);
     } catch (error) {
       console.error('Error updating order:', error);
@@ -867,8 +929,8 @@ const RiderDashboard = () => {
                 const count = tab === 'available' 
                   ? availableOrders.length 
                   : tab === 'assigned' 
-                    ? orders.filter(o => !['delivered', 'cancelled'].includes(o.status)).length
-                    : orders.filter(o => ['delivered', 'cancelled'].includes(o.status)).length;
+                    ? assignedOrders.length
+                    : completedOrders.length;
                 
                 return (
                   <button
@@ -896,7 +958,7 @@ const RiderDashboard = () => {
 
           {/* Orders List */}
           <div className="p-6">
-            {(activeTab === 'available' ? availableOrders : orders).length === 0 ? (
+            {(activeTab === 'available' ? availableOrders : activeTab === 'assigned' ? assignedOrders : completedOrders).length === 0 ? (
               <div className="text-center py-12">
                 <svg className="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
@@ -911,7 +973,7 @@ const RiderDashboard = () => {
             ) : (
               <div className="space-y-4">
                 <AnimatePresence>
-                {(activeTab === 'available' ? availableOrders : orders).map((order) => (
+                {(activeTab === 'available' ? availableOrders : activeTab === 'assigned' ? assignedOrders : completedOrders).map((order) => (
                   <motion.div
                     key={order._id || order.orderId}
                     initial={{ opacity: 0, y: 20 }}
