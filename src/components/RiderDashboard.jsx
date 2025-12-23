@@ -84,6 +84,14 @@ const RiderDashboard = () => {
     activeOrders: 0,
   });
   
+  // Update activeOrders count in stats whenever assignedOrders changes
+  useEffect(() => {
+    setRiderStats(prev => ({
+      ...prev,
+      activeOrders: assignedOrders.length
+    }));
+  }, [assignedOrders.length]);
+  
   // PIN verification states
   const [showPickupPinModal, setShowPickupPinModal] = useState(false);
   const [showDeliveryPinModal, setShowDeliveryPinModal] = useState(false);
@@ -324,21 +332,31 @@ const RiderDashboard = () => {
         }
       } else if (activeTab === 'assigned') {
         // Fetch rider's assigned orders
+        console.log('📦 Fetching assigned orders...');
         const response = await axios.get(
           `${import.meta.env.VITE_SERVER_URL}/api/orders/rider/${user.id}`,
           { withCredentials: true }
         );
+        console.log('📥 Assigned orders response:', response.data);
         if (response.data.success) {
-          setOrders(response.data.orders.filter(o => !['delivered', 'cancelled'].includes(o.status)));
+          const assigned = response.data.orders.filter(o => !['delivered', 'cancelled'].includes(o.status));
+          console.log(`✅ Setting ${assigned.length} assigned orders`);
+          setAssignedOrders(assigned);
+          setOrders(assigned); // Also set to orders for backward compatibility
         }
       } else if (activeTab === 'completed') {
         // Fetch completed orders
+        console.log('📦 Fetching completed orders...');
         const response = await axios.get(
           `${import.meta.env.VITE_SERVER_URL}/api/orders/rider/${user.id}`,
           { withCredentials: true }
         );
+        console.log('📥 Completed orders response:', response.data);
         if (response.data.success) {
-          setOrders(response.data.orders.filter(o => ['delivered', 'cancelled'].includes(o.status)));
+          const completed = response.data.orders.filter(o => ['delivered', 'cancelled'].includes(o.status));
+          console.log(`✅ Setting ${completed.length} completed orders`);
+          setCompletedOrders(completed);
+          setOrders(completed); // Also set to orders for backward compatibility
         }
       }
     } catch (error) {
@@ -386,15 +404,21 @@ const RiderDashboard = () => {
 
   const fetchRiderStats = async () => {
     try {
+      console.log('📊 Fetching rider stats...');
       const response = await axios.get(
         `${import.meta.env.VITE_SERVER_URL}/api/rider/stats`,
         { withCredentials: true }
       );
+      console.log('📊 Rider stats response:', response.data);
       if (response.data.success) {
+        console.log('✅ Setting rider stats:', response.data.data);
         setRiderStats(response.data.data);
+      } else {
+        console.error('❌ Failed to fetch rider stats:', response.data.message);
       }
     } catch (error) {
-      console.error('Error fetching rider stats:', error);
+      console.error('❌ Error fetching rider stats:', error);
+      console.error('❌ Error details:', error.response?.data);
     }
   };
 
@@ -1431,9 +1455,31 @@ const RiderDashboard = () => {
                     </div>
                   </div>
 
+                  {/* Customer Information */}
+                  <div className="border border-blue-200 rounded-lg p-4 bg-gradient-to-br from-blue-50 to-sky-50">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-3">👤 Customer Contact</h3>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Name</span>
+                        <span className="text-sm font-semibold text-gray-900">
+                          {viewingOrder.customer?.name || viewingOrder.customerName || 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between pt-2 border-t border-blue-200">
+                        <span className="text-sm text-gray-600">Phone</span>
+                        <a 
+                          href={`tel:${viewingOrder.customer?.phone || viewingOrder.customerPhone || ''}`}
+                          className="text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                        >
+                          📞 {viewingOrder.customer?.phone || viewingOrder.customerPhone || 'N/A'}
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Delivery Address */}
                   <div className="border border-gray-200 rounded-lg p-4">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-2"> Delivery Address</h3>
+                    <h3 className="text-sm font-semibold text-gray-900 mb-2">📍 Delivery Address</h3>
                     <p className="text-gray-700">
                       {viewingOrder.deliveryAddress?.fullAddress || 'Address not available'}
                     </p>

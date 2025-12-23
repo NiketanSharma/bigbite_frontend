@@ -678,23 +678,6 @@ const OrderTracking = () => {
               </div>
             </div>
 
-            {/* Delivery PIN Card - Show when order is on the way */}
-            {order.deliveryPin && ['on_the_way'].includes(order.status) && (
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl shadow-lg p-4 border border-green-300">
-                <h3 className="text-lg font-semibold text-green-900 mb-3 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  Your Delivery PIN
-                </h3>
-                <div className="bg-white rounded-lg p-4 text-center">
-                  <p className="text-3xl font-bold text-green-700 tracking-widest">
-                    {order.deliveryPin}
-                  </p>
-                </div>
-              </div>
-            )}
-
             {/* Delivery Address Card */}
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
               <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
