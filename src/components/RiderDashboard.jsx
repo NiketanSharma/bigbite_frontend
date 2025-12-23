@@ -490,12 +490,16 @@ const RiderDashboard = () => {
 
   // Get and track rider's current location
   useEffect(() => {
-    if (!isAvailable) {
-      console.log('⚠️ Rider is not available, skipping location tracking');
+    // Track location if rider is available OR has assigned orders
+    const hasAssignedOrders = assignedOrders && assignedOrders.length > 0;
+    const shouldTrackLocation = isAvailable || hasAssignedOrders;
+    
+    if (!shouldTrackLocation) {
+      console.log('⚠️ Rider has no active orders and is not available, skipping location tracking');
       return;
     }
 
-    console.log('📍 Starting location tracking for available rider');
+    console.log(`📍 Starting location tracking - Available: ${isAvailable}, Active Orders: ${assignedOrders?.length || 0}`);
 
     // Get initial location
     if ('geolocation' in navigator) {
@@ -510,10 +514,16 @@ const RiderDashboard = () => {
           setCurrentLocation(coords);
           setHasLocationPermission(true); // Mark permission as granted
           
-          // Join rider pool with actual location
+          // Join rider pool with actual location if available
           if (isAvailable && user?.id) {
             console.log('✅ Joining rider pool with ID:', user.id);
             joinRiderPool(user.id, coords);
+          }
+          
+          // Send initial location update for active orders
+          if (hasAssignedOrders && user?.id) {
+            console.log('📍 Sending initial location for active orders');
+            updateRiderLocation(user.id, coords);
           }
         },
         (error) => {
@@ -523,7 +533,7 @@ const RiderDashboard = () => {
         }
       );
 
-      // Update location every 10 seconds when available
+      // Update location every 10 seconds when available or has active orders
       const locationInterval = setInterval(() => {
         navigator.geolocation.getCurrentPosition(
           (position) => {
@@ -535,22 +545,23 @@ const RiderDashboard = () => {
             console.log('📍 Updating location:', coords);
             setCurrentLocation(coords);
             
-            // Update location in rider pool
+            // Update location in rider pool - always send if rider has ID
             if (user?.id) {
               updateRiderLocation(user.id, coords);
+              console.log('✅ Location update sent for rider:', user.id);
             }
           },
           (error) => {
             console.error('❌ Error updating location:', error);
           }
         );
-      }, 10000); // Update every 10 seconds
+      }, 5000); // Update every 5 seconds
 
       return () => clearInterval(locationInterval);
     } else {
       toast.error('Geolocation is not supported by your browser');
     }
-  }, [isAvailable, user?.id]);
+  }, [isAvailable, user?.id, assignedOrders?.length]);
 
   // Listen for new order notifications
   useEffect(() => {

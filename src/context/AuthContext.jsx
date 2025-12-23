@@ -27,27 +27,49 @@ export const AuthProvider=({children})=>{
     const checkAuth=async()=>{
         try{
             const token = localStorage.getItem('bigbite_token');
+            
+            // If no token exists, user is not authenticated - skip API call
+            if (!token) {
+                setuser(null);
+                setLoading(false);
+                return;
+            }
+            
             const headers = {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             };
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
+            
+            // Add timeout to prevent hanging
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+            
             const res=await fetch(`${SERVER_URL}/api/auth/me`,{
                 credentials:"include",
                 headers,
+                signal: controller.signal
             })
+            
+            clearTimeout(timeoutId);
+            
             if(res.ok){
                 const data=await res.json()
                 setuser(data.user)
             }
             else{
                 setuser(null)
+                // Clear invalid token
+                localStorage.removeItem('bigbite_token');
             }
         }catch(error){
-            // Silently fail - user is not logged in
-            // toast.error("Error checking authentication")
+            // Handle timeout or network errors
+            console.log("Auth check failed:", error.message);
             setuser(null)
+            // Clear potentially invalid token
+            if (error.name === 'AbortError') {
+                console.log("Auth check timed out");
+            }
+            localStorage.removeItem('bigbite_token');
         }finally{
             setLoading(false)
         }
