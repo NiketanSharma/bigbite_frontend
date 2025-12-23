@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
+import fallbackImg from '../assets/fallback.jpg';
 
 const RestaurantCard = ({ restaurant }) => {
   const navigate = useNavigate();
@@ -122,6 +123,10 @@ const FoodItemCard = ({ item, restaurant }) => {
         <img
           src={item.image}
           alt={item.name}
+          onError={(e) => {
+            e.target.src = fallbackImg;
+            e.target.onerror = null;
+          }}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
         />
         <div className="absolute top-2 right-2 flex gap-2">
@@ -409,7 +414,7 @@ const RestaurantExplore = () => {
           </p>
 
           {/* Sort Dropdown */}
-          <div className="flex items-center space-x-4">
+          {/* <div className="flex items-center space-x-4">
             <span className="text-gray-600 text-sm">Sort by:</span>
             <select className="px-4 py-2 border border-gray-300 outline-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF3B30] bg-white">
               <option className=" poppins-regular">Relevance</option>
@@ -418,7 +423,7 @@ const RestaurantExplore = () => {
               <option className=" poppins-regular">Cost: Low to High</option>
               <option className=" poppins-regular">Cost: High to Low</option>
             </select>
-          </div>
+          </div> */}
         </div>
 
         {/* Loading State */}

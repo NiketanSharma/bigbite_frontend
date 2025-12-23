@@ -863,19 +863,34 @@ const RiderDashboard = () => {
         <div className="bg-white rounded-lg shadow-md mb-6">
           <div className="border-b border-gray-200">
             <nav className="flex -mb-px">
-              {['available', 'assigned', 'completed'].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === tab
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1).replace('_', ' ')}
-                </button>
-              ))}
+              {['available', 'assigned', 'completed'].map((tab) => {
+                const count = tab === 'available' 
+                  ? availableOrders.length 
+                  : tab === 'assigned' 
+                    ? orders.filter(o => !['delivered', 'cancelled'].includes(o.status)).length
+                    : orders.filter(o => ['delivered', 'cancelled'].includes(o.status)).length;
+                
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+                      activeTab === tab
+                        ? 'border-primary text-primary'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <span>{tab.charAt(0).toUpperCase() + tab.slice(1).replace('_', ' ')}</span>
+                    <span className={`px-1 py-0.5 text-xs font-bold rounded-full ${
+                      activeTab === tab 
+                        ? 'bg-primary text-white' 
+                        : 'bg-gray-200 text-gray-600'
+                    }`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
             </nav>
           </div>
 
@@ -907,7 +922,7 @@ const RiderDashboard = () => {
                     <div className="flex items-start justify-between mb-4">
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900">
-                          Order #{(order._id || order.orderId)?.slice(-6)}
+                          Order #{(order._id || order.orderId)?.slice(-8).toUpperCase()}
                         </h3>
                         <p className="text-sm text-gray-600">
                           Restaurant: {order.restaurantName || order.restaurant?.restaurantDetails?.kitchenName}
@@ -1044,9 +1059,9 @@ const RiderDashboard = () => {
                           {['rider_assigned', 'preparing', 'ready'].includes(order.status) && (
                             <button
                               onClick={() => handleStartDelivery(order._id)}
-                              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                              className="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-600 transition-colors"
                             >
-                              🚚 Start Delivery
+                              Start Delivery
                             </button>
                           )}
                           {order.status === 'on_the_way' && (

@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import api from '../services/api';
 import heart from '../assets/heart.png'
+import { encryptPaymentData } from '../utils/encryption';
 
 const WishlistManager = () => {
   const { user, loading: authLoading } = useAuth();
@@ -215,11 +216,20 @@ const WishlistManager = () => {
 
       // COMPLIANCE: Redirect to approved Razorpay website
       const approvedSiteUrl = 'https://bharat-kumar-19030.github.io/Learno-Hub/payment.html';
-      const returnUrl = encodeURIComponent(window.location.origin + '/payment-callback');
+      const returnUrl = window.location.origin + '/payment-callback';
       
-      const redirectUrl = `${approvedSiteUrl}?amount=${totalAmount}&ref=${orderId}&returnUrl=${returnUrl}`;
+      // Encrypt payment data to prevent URL tampering
+      const paymentData = {
+        amount: totalAmount,
+        ref: orderId,
+        returnUrl: returnUrl,
+        timestamp: Date.now()
+      };
+      
+      const encryptedData = await encryptPaymentData(paymentData);
+      const redirectUrl = `${approvedSiteUrl}?data=${encodeURIComponent(encryptedData)}`;
 
-      console.log('🔄 Redirecting to approved payment site:', redirectUrl);
+      console.log('🔄 Redirecting to approved payment site with encrypted data');
       
       // Redirect to approved website (Razorpay checkout will open there)
       window.location.href = redirectUrl;
@@ -337,13 +347,13 @@ const WishlistManager = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ">
             {wishlists.map((wishlist) => (
               <motion.div
                 key={wishlist._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition"
+                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition m-2 flex flex-col justify-between"
               >
                 {/* Wishlist Header */}
                 <div className="p-4 bg-gradient-to-r from-orange-500 to-red-500">
@@ -356,7 +366,7 @@ const WishlistManager = () => {
                 {/* Items */}
                 <div className="p-4 max-h-64 overflow-y-auto">
                   {wishlist.items.map((item) => (
-                    <div key={item._id} className="flex items-center justify-between mb-3 pb-3 border-b last:border-0">
+                    <div key={item._id} className="flex items-center justify-between mb-3 pb-3 border-b last:border-0 border-gray-200">
                       <div className="flex-1">
                         <p className="font-medium text-gray-900">{item.name}</p>
                         <p className="text-sm text-gray-600">₹{item.price} × {item.quantity}</p>
@@ -394,7 +404,7 @@ const WishlistManager = () => {
                 </div>
 
                 {/* Total */}
-                <div className="px-4 py-3 bg-gray-50 border-t">
+                <div className="px-4 py-3 bg-gray-50 border-t border-gray-400">
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-semibold text-gray-900">Total:</span>
                     <span className="font-bold text-lg text-gray-900">
@@ -410,7 +420,7 @@ const WishlistManager = () => {
                 <div className="p-4 flex gap-2">
                   <button
                     onClick={() => handleCheckout(wishlist)}
-                    className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-red-600 font-medium"
+                    className=" cursor-pointer   flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 hover:shadow-lg font-medium"
                   >
                     Order Now
                   </button>

@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import LocationPicker from './LocationPicker';
+import fallbackImg from '../assets/fallback.jpg';
 
 const Profile = () => {
   const { user, checkAuth } = useAuth();
@@ -321,6 +322,10 @@ const Profile = () => {
                       <img
                         src={avatar}
                         alt="Profile"
+                        onError={(e) => {
+                          e.target.src = fallbackImg;
+                          e.target.onerror = null;
+                        }}
                         className="w-full h-full object-cover"
                       />
                     ) : (

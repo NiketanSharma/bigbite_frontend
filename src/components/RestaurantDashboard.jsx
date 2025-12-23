@@ -6,12 +6,13 @@ import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import api from '../services/api';
+import fallbackImg from '../assets/fallback.jpg';
 
 const RestaurantDashboard = () => {
   const { user, checkAuth, setShowKitchenDetailsModal, loading: authLoading } = useAuth();
   const { socket, authenticateRestaurant, acceptOrder, rejectOrder } = useSocket();
   const navigate = useNavigate();
-  const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
+  const SERVER_URL = import.meta.env.VITE_SERVER_URL ;
   const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
   const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 
@@ -442,7 +443,7 @@ const RestaurantDashboard = () => {
           {/* Order Tabs */}
           <div className="border-t border-b border-gray-200 pt-2">
             
-            <nav className="flex -mb-px justify-between w-full overflow-auto scroll">
+            <nav className="flex -mb-px justify-between w-full overflow-auto scroll scrollbar-hide">
               {[
                 { key: 'pending', label: 'Pending', count: allOrders.filter(o => o.status === 'pending').length },
                 { key: 'accepted', label: 'Accepted', count: allOrders.filter(o => o.status === 'accepted').length },
@@ -548,9 +549,9 @@ const RestaurantDashboard = () => {
 
                     {/* Pickup PIN - Show on all order cards for easy access */}
                     {order.pickupPin && ['accepted', 'rider_assigned', 'preparing', 'ready'].includes(order.status) && (
-                      <div className="mb-4 p-2 bg-blue-50 border border-blue-300 rounded-lg">
-                        <p className="text-xs font-semibold text-blue-900 mb-1">🔒 Pickup PIN</p>
-                        <p className="text-xl font-bold text-blue-700 text-center tracking-widest">
+                      <div className="mb-4 p-2 bg-green-50 border border-green-300 rounded-lg flex flex-wrap gap-4 items-center justify-between">
+                        <p className="poppins-regular font-semibold text-green-600 mb-1">Pickup Pin</p>
+                        <p className="poppins-regular font-bold text-green-600 text-center tracking-widest">
                           {order.pickupPin}
                         </p>
                       </div>
@@ -627,6 +628,10 @@ const RestaurantDashboard = () => {
                   <img
                     src={item.image}
                     alt={item.name}
+                    onError={(e) => {
+                      e.target.src = fallbackImg;
+                      e.target.onerror = null;
+                    }}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -839,7 +844,15 @@ const RestaurantDashboard = () => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg"
                 />
                 {formData.image && (
-                  <img src={formData.image} alt="Preview" className="mt-2 h-32 w-32 object-cover rounded" />
+                  <img 
+                    src={formData.image} 
+                    alt="Preview" 
+                    onError={(e) => {
+                      e.target.src = fallbackImg;
+                      e.target.onerror = null;
+                    }}
+                    className="mt-2 h-32 w-32 object-cover rounded" 
+                  />
                 )}
                 {uploading && <p className="text-sm text-gray-500 mt-2">Uploading...</p>}
               </div>

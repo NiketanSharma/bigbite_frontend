@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import LocationPicker from './LocationPicker';
 import heart from "../assets/heart.png";
+import fallbackImg from "../assets/fallback.jpg";
 
 const Navbar = () => {
   const { location, setLocation, cart, setUserLocation, userLocation } = useApp();
@@ -164,7 +165,7 @@ const Navbar = () => {
             {/* Cart */}
             <button
               onClick={() => navigate('/cart')}
-              className="relative group flex items-center space-x-2 px-2 py-2 md:px-4 rounded-full hover:bg-gradient-to-r hover:from-[#FF3B30]/10 hover:to-[#FFC107]/10 transition-all duration-300"
+              className="relative group flex items-center space-x-2 px-2 py-2 md:px-4 rounded-full hover:bg-gradient-to-r hover:from-red-500 hover:to-amber-400 transition-all duration-300"
             >
               <div className="relative">
                 <lord-icon
@@ -179,7 +180,7 @@ const Navbar = () => {
                   </span>
                 )}
               </div>
-              <span className="hidden md:block font-semibold text-gray-700 group-hover:text-[#FF3B30] transition-colors">
+              <span className="hidden md:block font-semibold text-gray-700 group-hover:text-white transition-colors">
                 Cart
               </span>
             </button>
@@ -188,12 +189,12 @@ const Navbar = () => {
             {user && (
               <button
                 onClick={() => navigate('/wishlists')}
-                className="group flex items-center space-x-2 px-2 py-2 md:px-4 rounded-full hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 transition-all duration-300"
+                className="group flex items-center space-x-2 px-2 py-2 md:px-4 rounded-full hover:bg-gradient-to-r hover:from-red-500 hover:to-amber-400 transition-all duration-300"
               >
                 <div className="relative">
                   <img src={heart} className="size-6 group-hover:scale-110 transition-transform duration-300" />
                 </div>
-                <span className="hidden md:block font-semibold text-gray-700 group-hover:text-[#FF3B30] transition-colors">
+                <span className="hidden md:block font-semibold text-gray-700 group-hover:text-white transition-colors">
                   La carte
                 </span>
               </button>
@@ -203,7 +204,7 @@ const Navbar = () => {
             <div className="relative">
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center space-x-2 text-gray-700 hover:text-[#FF3B30] transition-colors"
+                className="flex items-center space-x-2 px-3 py-2 rounded-full text-gray-700 hover:bg-gradient-to-r hover:from-red-500 hover:to-amber-400 hover:text-white transition-all duration-300"
               >
                 {user ? (
                   <>
@@ -211,6 +212,10 @@ const Navbar = () => {
                       <img
                         src={user.avatar}
                         alt={user.name}
+                        onError={(e) => {
+                          e.target.src = fallbackImg;
+                          e.target.onerror = null;
+                        }}
                         className="w-8 h-8 rounded-full object-cover border border-gray-100"
                       />
                     ) : (

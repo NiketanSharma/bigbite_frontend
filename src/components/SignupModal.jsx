@@ -15,6 +15,8 @@ const Register = () => {
 
   const { checkAuth, setShowSignupModal, setShowLoginModal } = useAuth();
   const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+  const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -22,18 +24,22 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     if (formData.password !== formData.confirmPassword) {
       toast.error('Passwords do not match');
+      setLoading(false);
       return;
     }
 
     if (formData.password.length < 6) {
       toast.error('Password must be at least 6 characters');
+      setLoading(false);
       return;
     }
     if (formData.phone.length < 10|| ! /^[0-9]{10}$/.test(formData.phone)) {
       toast.error('Phone number must be at least 10 digits');
+      setLoading(false);
       return;
     }
     
@@ -72,6 +78,7 @@ const Register = () => {
       console.error('Registration error:', error);
       toast.error(error.message);
     }
+    setLoading(false);
   };
 
   const switchToLogin = () => {
@@ -95,8 +102,13 @@ const Register = () => {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           onClick={(e) => e.stopPropagation()}
-          className="relative bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md max-h-[90vh] overflow-y-auto scrollbar-hide"
+          className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto scrollbar-hide"
         >
+          <div className='sticky top-0 bg-white z-10 border-b border-b-gray-100 shadow-sm'>
+          <div className='mb-2 bg-gradient-to-r from-red-500 to-amber-400 h-2 w-full overflow-hidden'>
+            <div className={`bg-gradient-to-r from-transparent via-white to-transparent w-full h-full transition-transform duration-5000 ease-in-out ${loading || googleLoading ? 'animate-slide' : '-translate-x-full'}`}></div>
+          </div>
+            
           {/* Close Button */}
           <button
             onClick={() => setShowSignupModal(false)}
@@ -107,13 +119,15 @@ const Register = () => {
             </svg>
           </button>
 
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 ">
             <h1 className="text-4xl font-bold text-dark mb-2">
               <span className="text-primary">Big</span>
               <span className="text-amber-400">Bite</span>
             </h1>
             <p className="text-gray-600">Create your account and enjoy the services</p>
           </div>
+          </div>
+          <div className='p-8'>
 
           <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -172,7 +186,7 @@ const Register = () => {
           <div>
             <label className="block text-sm font-semibold text-dark mb-2">Confirm Password</label>
             <input
-              type="text"
+              type="password"
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
@@ -198,9 +212,10 @@ const Register = () => {
 
           <button
             type="submit"
-            className="cursor-pointer  w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition duration-300 shadow-lg hover:shadow-xl"
+            disabled={loading}
+            className={`${loading ? 'bg-red-400 cursor-not-allowed' : 'bg-primary hover:bg-red-600 cursor-pointer'} w-full text-white py-3 rounded-lg font-semibold transition duration-300 shadow-lg hover:shadow-xl`}
           >
-            Sign Up
+            {loading ? 'Signing up...' : 'Sign Up'}
           </button>
         </form>
 
@@ -217,9 +232,11 @@ const Register = () => {
         {/* Google OAuth Button */}
         <button
           onClick={() => {
+            setGoogleLoading(true);
             window.location.href = `${SERVER_URL}/api/auth/google?redirect=${encodeURIComponent(window.location.pathname)}`;
           }}
-          className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-300 shadow-sm hover:shadow-md"
+          disabled={googleLoading || loading}
+          className={`${googleLoading || loading ? 'cursor-not-allowed opacity-60' : 'hover:bg-gray-50 hover:shadow-md'} w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg transition duration-300 shadow-sm`}
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -227,7 +244,7 @@ const Register = () => {
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
           </svg>
-          <span className="font-medium text-gray-700">Continue with Google</span>
+          <span className="font-medium text-gray-700">{googleLoading ? 'Redirecting to Google...' : 'Continue with Google'}</span>
         </button>
 
         <div className="mt-6 text-center ">
@@ -240,6 +257,7 @@ const Register = () => {
               Login
             </button>
           </p>
+        </div>
         </div>
         </motion.div>
       </motion.div>

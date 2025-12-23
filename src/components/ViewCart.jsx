@@ -8,6 +8,8 @@ import { toast } from 'react-hot-toast';
 import LocationPicker from './LocationPicker';
 import axios from 'axios';
 import heart from '../assets/heart.png';
+import fallbackImg from '../assets/fallback.jpg';
+import { encryptPaymentData } from '../utils/encryption';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL ;
 
@@ -391,11 +393,20 @@ const ViewCart = () => {
 
       // COMPLIANCE: Redirect to approved Razorpay website
       const approvedSiteUrl = 'https://bharat-kumar-19030.github.io/Learno-Hub/payment.html';
-      const returnUrl = encodeURIComponent(window.location.origin + '/payment-callback');
+      const returnUrl = window.location.origin + '/payment-callback';
       
-      const redirectUrl = `${approvedSiteUrl}?amount=${totalAmount}&ref=${orderId}&returnUrl=${returnUrl}`;
+      // Encrypt payment data to prevent URL tampering
+      const paymentData = {
+        amount: totalAmount,
+        ref: orderId,
+        returnUrl: returnUrl,
+        timestamp: Date.now()
+      };
+      
+      const encryptedData = await encryptPaymentData(paymentData);
+      const redirectUrl = `${approvedSiteUrl}?data=${encodeURIComponent(encryptedData)}`;
 
-      console.log('🔄 Redirecting to approved payment site:', redirectUrl);
+      console.log('🔄 Redirecting to approved payment site with encrypted data');
       
       // Redirect to approved website (Razorpay checkout will open there)
       window.location.href = redirectUrl;
@@ -556,6 +567,10 @@ const ViewCart = () => {
                         <img
                           src={menuItem.image || 'https://via.placeholder.com/150'}
                           alt={menuItem.name}
+                          onError={(e) => {
+                            e.target.src = fallbackImg;
+                            e.target.onerror = null;
+                          }}
                           className="w-full h-full object-cover rounded-lg"
                         />
                       </div>

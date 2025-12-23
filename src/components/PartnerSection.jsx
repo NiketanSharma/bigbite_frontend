@@ -30,7 +30,7 @@ const PartnerSection = () => {
         {/* Section Header */}
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Grow With <span className="text-[#FF3B30]">BigBite</span>
+            Grow With <span className="text-[#FF3B30]">Big<span className='text-amber-400'>Bite</span></span>
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Join thousands of partners and riders who are growing their business and earning with us

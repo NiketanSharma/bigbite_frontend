@@ -6,6 +6,7 @@ import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import locationpin from '../assets/location-pin.png';
 import star from '../assets/star.png';
+import fallbackImg from '../assets/fallback.jpg';
 
 const RestaurantPage = () => {
   const { restaurantId, itemId } = useParams();
@@ -178,6 +179,10 @@ const RestaurantPage = () => {
         <img
           src={item.image}
           alt={item.name}
+          onError={(e) => {
+            e.target.src = fallbackImg;
+            e.target.onerror = null;
+          }}
           className="w-full h-full object-cover shadow-lg"
         />
         <div className="absolute top-2 right-2 flex gap-2">
@@ -247,6 +252,10 @@ const RestaurantPage = () => {
             <img
               src={restaurant.avatar || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=200'}
               alt={restaurant.name}
+              onError={(e) => {
+                e.target.src = fallbackImg;
+                e.target.onerror = null;
+              }}
               className="w-44 h-44 md:w-44 md:h-44 rounded-full object-cover shadow-xl mx-auto hover:scale-108 transition-transform duration-300"
             />
             {console.log('🏠 Restaurant details:', restaurant)}
