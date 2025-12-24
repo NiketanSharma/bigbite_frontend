@@ -92,6 +92,29 @@ const RiderDashboard = () => {
     }));
   }, [assignedOrders.length]);
   
+  // Update totalDeliveries as sum of assigned and completed orders
+  useEffect(() => {
+    const totalDeliveries = assignedOrders.length + completedOrders.length;
+    setRiderStats(prev => ({
+      ...prev,
+      totalDeliveries
+    }));
+  }, [assignedOrders.length, completedOrders.length]);
+  
+  // Ensure totalDeliveries updates when switching to available tab
+  useEffect(() => {
+    if (activeTab === 'available') {
+      // Recalculate totalDeliveries from current state
+      const totalDeliveries = assignedOrders.length + completedOrders.length;
+      setRiderStats(prev => ({
+        ...prev,
+        totalDeliveries
+      }));
+      // Also fetch latest counts in background
+      fetchAllOrderCounts();
+    }
+  }, [activeTab]);
+  
   // PIN verification states
   const [showPickupPinModal, setShowPickupPinModal] = useState(false);
   const [showDeliveryPinModal, setShowDeliveryPinModal] = useState(false);
@@ -167,6 +190,39 @@ const RiderDashboard = () => {
   useEffect(() => {
     sessionStorage.setItem('availableOrders', JSON.stringify(availableOrders));
   }, [availableOrders]);
+  
+  // Auto-remove orders older than 10 minutes
+  useEffect(() => {
+    if (activeTab !== 'available') return;
+    
+    // Check every 30 seconds for expired orders
+    const cleanupInterval = setInterval(() => {
+      const tenMinutesAgo = Date.now() - (10 * 60 * 1000);
+      
+      setAvailableOrders(prev => {
+        const filtered = prev.filter(order => {
+          const orderTime = new Date(order.createdAt).getTime();
+          const isValid = orderTime > tenMinutesAgo;
+          
+          if (!isValid) {
+            console.log(`🗑️ Removing expired order ${order.orderId || order._id} (${Math.round((Date.now() - orderTime) / 60000)} minutes old)`);
+          }
+          
+          return isValid;
+        });
+        
+        // Only update state if something was removed
+        if (filtered.length !== prev.length) {
+          console.log(`🧹 Cleaned up ${prev.length - filtered.length} expired orders`);
+          return filtered;
+        }
+        
+        return prev;
+      });
+    }, 30000); // Check every 30 seconds
+    
+    return () => clearInterval(cleanupInterval);
+  }, [activeTab]);
   
   // Fetch available orders on mount if on available tab
   useEffect(() => {
@@ -412,7 +468,15 @@ const RiderDashboard = () => {
       console.log('📊 Rider stats response:', response.data);
       if (response.data.success) {
         console.log('✅ Setting rider stats:', response.data.data);
-        setRiderStats(response.data.data);
+        
+        // Calculate totalDeliveries from frontend state only (assigned + completed)
+        const totalDeliveries = assignedOrders.length + completedOrders.length;
+        const statsData = {
+          ...response.data.data,
+          totalDeliveries // Always use frontend calculation, no fallback
+        };
+        
+        setRiderStats(statsData);
       } else {
         console.error('❌ Failed to fetch rider stats:', response.data.message);
       }
@@ -1222,7 +1286,40 @@ const RiderDashboard = () => {
                         onClick={() => {
                           // For available orders, show inline modal to preserve state
                           if (activeTab === 'available') {
-                            setViewingOrder(order);
+                            // Calculate missing fields if needed
+                            const enrichedOrder = { ...order };
+                            
+                            // Calculate distance to restaurant if not present
+                            if (!enrichedOrder.distance && currentLocation && order.restaurantAddress?.latitude && order.restaurantAddress?.longitude) {
+                              const dist = calculateDistance(
+                                currentLocation.latitude,
+                                currentLocation.longitude,
+                                order.restaurantAddress.latitude,
+                                order.restaurantAddress.longitude
+                              );
+                              enrichedOrder.distance = dist.toFixed(2);
+                            }
+                            
+                            // Calculate riderEarnings if not present
+                            if (!enrichedOrder.riderEarnings && order.restaurantAddress?.latitude && order.restaurantAddress?.longitude && order.deliveryAddress?.latitude && order.deliveryAddress?.longitude) {
+                              const distanceToCustomer = calculateDistance(
+                                order.restaurantAddress.latitude,
+                                order.restaurantAddress.longitude,
+                                order.deliveryAddress.latitude,
+                                order.deliveryAddress.longitude
+                              );
+                              // Use deliveryFee if available, otherwise calculate based on distance
+                              enrichedOrder.riderEarnings = order.deliveryFee > 0 
+                                ? order.deliveryFee 
+                                : Math.round(distanceToCustomer * 8);
+                              
+                              // Also add distanceToCustomer if not present
+                              if (!enrichedOrder.distanceToCustomer) {
+                                enrichedOrder.distanceToCustomer = distanceToCustomer.toFixed(2);
+                              }
+                            }
+                            
+                            setViewingOrder(enrichedOrder);
                           } else {
                             // For assigned/completed, can navigate normally
                             navigate(`/track-order/${order._id || order.orderId}`);
@@ -1456,26 +1553,39 @@ const RiderDashboard = () => {
                   </div>
 
                   {/* Customer Information */}
-                  <div className="border border-blue-200 rounded-lg p-4 bg-gradient-to-br from-blue-50 to-sky-50">
+                  {/* <div className="border border-blue-200 rounded-lg p-4 bg-gradient-to-br from-blue-50 to-sky-50">
                     <h3 className="text-sm font-semibold text-gray-900 mb-3">👤 Customer Contact</h3>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Name</span>
-                        <span className="text-sm font-semibold text-gray-900">
-                          {viewingOrder.customer?.name || viewingOrder.customerName || 'N/A'}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between pt-2 border-t border-blue-200">
-                        <span className="text-sm text-gray-600">Phone</span>
-                        <a 
-                          href={`tel:${viewingOrder.customer?.phone || viewingOrder.customerPhone || ''}`}
-                          className="text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
-                        >
-                          📞 {viewingOrder.customer?.phone || viewingOrder.customerPhone || 'N/A'}
-                        </a>
-                      </div>
-                    </div>
-                  </div>
+                    {(() => {
+                      // Debug logging
+                      console.log('👤 Customer Data Debug:');
+                      console.log('   viewingOrder.customer:', viewingOrder.customer);
+                      console.log('   viewingOrder.customerName:', viewingOrder.customerName);
+                      console.log('   viewingOrder.customerPhone:', viewingOrder.customerPhone);
+                      
+                      const customerName = viewingOrder.customer?.name || viewingOrder.customerName;
+                      const customerPhone = viewingOrder.customer?.phone || viewingOrder.customerPhone;
+                      
+                      return (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">Name</span>
+                            <span className="text-sm font-semibold text-gray-900">
+                              {customerName || 'N/A'}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between pt-2 border-t border-blue-200">
+                            <span className="text-sm text-gray-600">Phone</span>
+                            <a 
+                              href={`tel:${customerPhone || ''}`}
+                              className="text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                            >
+                              📞 {customerPhone || 'N/A'}
+                            </a>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div> */} 
 
                   {/* Delivery Address */}
                   <div className="border border-gray-200 rounded-lg p-4">

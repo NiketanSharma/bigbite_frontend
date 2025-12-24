@@ -161,25 +161,34 @@ const OrderTracking = () => {
           if (!prev) return null;
           const updates = { status: data.status };
           
-          // Set the appropriate timestamp field
+          // Set the appropriate timestamp field based on status
+          // Only set if not already set to preserve original timestamps
           switch(data.status) {
+            case 'accepted':
+              if (!prev.acceptedAt) updates.acceptedAt = new Date();
+              break;
+            case 'awaiting_rider':
+              // Restaurant accepted, waiting for rider
+              if (!prev.acceptedAt) updates.acceptedAt = new Date();
+              break;
             case 'rider_assigned':
-              updates.acceptedAt = new Date();
+              // Rider accepted - set preparingAt as the rider acceptance timestamp
+              if (!prev.preparingAt) updates.preparingAt = new Date();
               break;
             case 'preparing':
-              updates.preparingAt = new Date();
+              if (!prev.preparingAt) updates.preparingAt = new Date();
               break;
             case 'ready':
-              updates.readyAt = new Date();
+              if (!prev.readyAt) updates.readyAt = new Date();
               break;
             case 'picked_up':
-              updates.pickedUpAt = new Date();
+              if (!prev.pickedUpAt) updates.pickedUpAt = new Date();
               break;
             case 'on_the_way':
-              updates.onTheWayAt = new Date();
+              if (!prev.onTheWayAt) updates.onTheWayAt = new Date();
               break;
             case 'delivered':
-              updates.deliveredAt = new Date();
+              if (!prev.deliveredAt) updates.deliveredAt = new Date();
               break;
           }
           
@@ -206,7 +215,7 @@ const OrderTracking = () => {
         setOrder((prev) => prev ? {
           ...prev,
           status: data.status,
-          acceptedAt: new Date(),
+          preparingAt: new Date(), // Use preparingAt for rider acceptance
           rider: {
             name: data.riderName,
             phone: data.riderPhone
@@ -312,27 +321,27 @@ const OrderTracking = () => {
     const timeline = [
       { status: 'pending', label: 'Order Placed', time: order.createdAt },
       { status: 'accepted', label: 'Restaurant Accepted', time: order.acceptedAt },
-      { status: 'rider_assigned', label: 'Rider Accepted', time: order.acceptedAt },
+      { status: 'rider_assigned', label: 'Rider Accepted', time: order.pickedUpAt || order.readyAt || order.preparingAt },
       { status: 'on_the_way', label: 'On the Way', time: order.onTheWayAt },
       { status: 'delivered', label: 'Delivered', time: order.deliveredAt },
     ];
 
-    const currentIndex = timeline.findIndex((item) => item.status === order.status);
+    // Define status order for comparison
+    const statusOrder = ['pending', 'accepted', 'awaiting_rider', 'rider_assigned', 'preparing', 'ready', 'picked_up', 'on_the_way', 'delivered'];
+    const currentStatusIndex = statusOrder.indexOf(order.status);
 
     return timeline.map((item, index) => {
       let completed = false;
+      const itemStatusIndex = statusOrder.indexOf(item.status);
       
-      // Handle completion logic for simplified states
-      if (order.status === 'pending') {
-        completed = index === 0;
-      } else if (order.status === 'accepted') {
-        completed = index <= 1;
-      } else if (['rider_assigned', 'preparing', 'ready', 'picked_up'].includes(order.status)) {
-        completed = index <= 2;
-      } else if (order.status === 'on_the_way') {
-        completed = index <= 3;
-      } else if (order.status === 'delivered') {
-        completed = true;
+      // An event is completed if the current order status is further along
+      // Special handling for rider_assigned which encompasses multiple statuses
+      if (item.status === 'rider_assigned') {
+        // Rider accepted is complete if status is rider_assigned or beyond
+        completed = ['rider_assigned', 'preparing', 'ready', 'picked_up', 'on_the_way', 'delivered'].includes(order.status);
+      } else {
+        // For other statuses, check if current status is at or beyond this timeline item
+        completed = currentStatusIndex >= itemStatusIndex;
       }
 
       return {
@@ -341,7 +350,8 @@ const OrderTracking = () => {
         active: item.status === order.status || 
                 (order.status === 'preparing' && item.status === 'rider_assigned') ||
                 (order.status === 'ready' && item.status === 'rider_assigned') ||
-                (order.status === 'picked_up' && item.status === 'rider_assigned'),
+                (order.status === 'picked_up' && item.status === 'rider_assigned') ||
+                (order.status === 'awaiting_rider' && item.status === 'accepted'),
       };
     });
   };
@@ -597,6 +607,38 @@ const OrderTracking = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Customer Info (for riders only) */}
+              {user?.role === 'rider' && order.customer && (
+                <div className="mb-6 p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Customer Contact
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Name</span>
+                      <span className="text-sm font-semibold text-gray-900">
+                        {order.customer.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between pt-2 border-t border-purple-200">
+                      <span className="text-sm text-gray-600">Phone</span>
+                      <a 
+                        href={`tel:${order.customer.phone}`}
+                        className="text-sm font-semibold text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                         {order.customer.phone}
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Rider Info */}
               {order.rider && (
