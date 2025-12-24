@@ -22,6 +22,8 @@ const Profile = () => {
       state: '',
       zipCode: '',
       country: '',
+      latitude: undefined,
+      longitude: undefined,
     },
     restaurantDetails: {
       kitchenName: '',
@@ -33,6 +35,8 @@ const Profile = () => {
         state: '',
         zipCode: '',
         country: '',
+        latitude: undefined,
+        longitude: undefined,
       },
     },
     riderDetails: {
@@ -67,6 +71,8 @@ const Profile = () => {
           state: user.address?.state || '',
           zipCode: user.address?.zipCode || '',
           country: user.address?.country || '',
+          latitude: user.address?.latitude,
+          longitude: user.address?.longitude,
         },
         restaurantDetails: {
           kitchenName: user.restaurantDetails?.kitchenName || '',
@@ -78,6 +84,8 @@ const Profile = () => {
             state: user.restaurantDetails?.address?.state || '',
             zipCode: user.restaurantDetails?.address?.zipCode || '',
             country: user.restaurantDetails?.address?.country || '',
+            latitude: user.restaurantDetails?.address?.latitude,
+            longitude: user.restaurantDetails?.address?.longitude,
           },
         },
         riderDetails: {

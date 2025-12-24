@@ -24,6 +24,8 @@ const RestaurantRegistration = () => {
         state: '',
         zipCode: '',
         country: '',
+        latitude: undefined,
+        longitude: undefined,
       },
     },
   });
