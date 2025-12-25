@@ -77,10 +77,16 @@ const WishlistManager = () => {
     }
 
     try {
+      const token = localStorage.getItem('bigbite_token');
       const response = await axios.patch(
         `${SERVER_URL}/api/wishlist/${selectedWishlist._id}/name`,
         { name: editingName },
-        { withCredentials: true }
+        { 
+          withCredentials: true,
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
       );
 
       if (response.data.success) {
@@ -91,7 +97,7 @@ const WishlistManager = () => {
       }
     } catch (error) {
       console.error('Error updating name:', error);
-      toast.error('Failed to update name');
+      toast.error(error.response?.data?.message || 'Failed to update name');
     }
   };
 
@@ -99,9 +105,15 @@ const WishlistManager = () => {
     if (!confirm('Are you sure you want to delete this wishlist?')) return;
 
     try {
+      const token = localStorage.getItem('bigbite_token');
       const response = await axios.delete(
         `${SERVER_URL}/api/wishlist/${wishlistId}`,
-        { withCredentials: true }
+        { 
+          withCredentials: true,
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
       );
 
       if (response.data.success) {
@@ -110,15 +122,21 @@ const WishlistManager = () => {
       }
     } catch (error) {
       console.error('Error deleting wishlist:', error);
-      toast.error('Failed to delete wishlist');
+      toast.error(error.response?.data?.message || 'Failed to delete wishlist');
     }
   };
 
   const handleDeleteItem = async (wishlistId, itemId) => {
     try {
+      const token = localStorage.getItem('bigbite_token');
       const response = await axios.delete(
         `${SERVER_URL}/api/wishlist/${wishlistId}/items/${itemId}`,
-        { withCredentials: true }
+        { 
+          withCredentials: true,
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
       );
 
       if (response.data.success) {
@@ -127,7 +145,7 @@ const WishlistManager = () => {
       }
     } catch (error) {
       console.error('Error removing item:', error);
-      toast.error('Failed to remove item');
+      toast.error(error.response?.data?.message || 'Failed to remove item');
     }
   };
 
@@ -135,10 +153,16 @@ const WishlistManager = () => {
     if (newQuantity < 1) return;
 
     try {
+      const token = localStorage.getItem('bigbite_token');
       const response = await axios.patch(
         `${SERVER_URL}/api/wishlist/${wishlistId}/items/${itemId}`,
         { quantity: newQuantity },
-        { withCredentials: true }
+        { 
+          withCredentials: true,
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
       );
 
       if (response.data.success) {
@@ -146,7 +170,7 @@ const WishlistManager = () => {
       }
     } catch (error) {
       console.error('Error updating quantity:', error);
-      toast.error('Failed to update quantity');
+      toast.error(error.response?.data?.message || 'Failed to update quantity');
     }
   };
 
@@ -298,10 +322,16 @@ const WishlistManager = () => {
       // Handle COD payment
       toast.loading('Placing your order...', { id: 'wishlist-order' });
 
+      const token = localStorage.getItem('bigbite_token');
       const response = await axios.post(
         `${SERVER_URL}/api/orders`,
         orderData,
-        { withCredentials: true }
+        { 
+          withCredentials: true,
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
       );
 
       if (response.data.success) {
