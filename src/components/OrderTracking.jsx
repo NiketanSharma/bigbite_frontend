@@ -410,7 +410,7 @@ const OrderTracking = () => {
               <h1 className="text-4xl font-bold text-gray-900 mb-2">Track Your Order</h1>
               <p className="text-gray-600 flex items-center gap-2">
                 <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
-                  #{order._id.slice(-8).toUpperCase()}
+                  #{order.orderNumber || order._id.slice(-8).toUpperCase()}
                 </span>
                 <span className="text-sm">
                   {new Date(order.createdAt).toLocaleDateString()} at {new Date(order.createdAt).toLocaleTimeString()}

@@ -1130,7 +1130,7 @@ const RiderDashboard = () => {
                     <div className="flex items-start justify-between mb-4">
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900">
-                          Order #{(order._id || order.orderId)?.slice(-8).toUpperCase()}
+                          Order #{order.orderNumber || (order._id || order.orderId)?.slice(-8).toUpperCase()}
                         </h3>
                         <p className="text-sm text-gray-600">
                           Restaurant: {order.restaurantName || order.restaurant?.restaurantDetails?.kitchenName}
@@ -1359,7 +1359,7 @@ const RiderDashboard = () => {
                 <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-50 ">
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900">
-                      Order Details <span className='text-xl text-gray-700'>#{viewingOrder.orderId?.slice(-8).toUpperCase() || viewingOrder._id?.slice(-8).toUpperCase()}</span>
+                      Order Details <span className='text-xl text-gray-700'>#{viewingOrder.orderNumber || viewingOrder.orderId?.slice(-8).toUpperCase() || viewingOrder._id?.slice(-8).toUpperCase()}</span>
                     </h2>
                     <p className="text-sm text-gray-600 mt-1">
                       Restaurant: {viewingOrder.restaurantName}

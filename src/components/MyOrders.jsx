@@ -248,7 +248,7 @@ console.log("filtered orders: ",filteredOrders)
                         {order.restaurant?.restaurantDetails?.kitchenName}
                       </h3>
                       <p className="text-sm text-gray-500">
-                        Order #{order._id.slice(-8).toUpperCase()}
+                        Order #{order.orderNumber || order._id.slice(-8).toUpperCase()}
                       </p>
                       <p className="text-sm text-gray-500">
                         {new Date(order.createdAt).toLocaleString()}

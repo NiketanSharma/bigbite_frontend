@@ -527,7 +527,7 @@ const Chatbot = () => {
             toast.success('Order placed successfully! 🎉');
 
             // Format order ID to 8 characters
-            const shortOrderId = response.order._id.substring(0, 8).toUpperCase();
+            const shortOrderId = response.order._id.slice(-8).toUpperCase();
 
             // Create detailed breakdown
             const breakdown = `Awesome! Your order has been placed successfully!

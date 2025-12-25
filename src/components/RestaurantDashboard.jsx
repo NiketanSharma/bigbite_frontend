@@ -499,7 +499,7 @@ const RestaurantDashboard = () => {
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <h3 className="font-semibold text-lg text-gray-900">
-                          Order #{order._id.slice(-8).toUpperCase()}
+                          Order #{order.orderNumber || order._id.slice(-8).toUpperCase()}
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
                           Customer: {order.customer?.name} | {order.customer?.phone}
